@@ -2,593 +2,907 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>価格見積もり管理 | pharmacy-inventory</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>価格見積もり管理 | 薬剤部</title>
 <style>
-:root {
-  --bg:#0a0e1a; --surface:#111827; --surface2:#1e2a3a;
-  --accent:#00e5ff; --accent2:#00ff88; --warn:#ff6b35; --warn2:#ffd700;
-  --fix:#c084fc; --in:#00ff88; --out:#ff6b35; --master:#00e5ff;
-  --text:#e2e8f0; --text-dim:#64748b; --border:rgba(0,229,255,0.12);
-  --nav-w:200px;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;}
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --border: #2e3248;
+    --accent: #4f8ef7;
+    --accent2: #38d9a9;
+    --danger: #f76f6f;
+    --warn: #f7b84f;
+    --text: #e8eaf0;
+    --text2: #8b90a8;
+    --green: #38d9a9;
+    --red: #f76f6f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Hiragino Sans', 'Yu Gothic UI', sans-serif; font-size: 14px; min-height: 100vh; }
 
-/* ===== LAYOUT ===== */
-.layout{display:flex;min-height:100vh;}
-.nav{width:var(--nav-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;}
-.nav-logo{padding:18px 14px 14px;border-bottom:1px solid var(--border);}
-.nav-logo-title{font-size:13px;font-weight:700;color:var(--text);}
-.nav-logo-sub{font-size:9px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;margin-top:2px;}
-.nav-section{padding:10px 10px 3px;font-size:9px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;letter-spacing:0.12em;text-transform:uppercase;}
-.nav-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:7px;margin:1px 6px;cursor:pointer;transition:all 0.15s;color:var(--text-dim);font-size:12px;position:relative;}
-.nav-item:hover{background:rgba(255,255,255,0.05);color:var(--text);}
-.nav-item.active{background:rgba(0,229,255,0.08);color:var(--text);}
-.nav-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;border-radius:0 2px 2px 0;background:var(--accent);}
-.nav-footer{margin-top:auto;padding:12px 14px;border-top:1px solid var(--border);}
-.nav-back{font-size:10px;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:5px;}
-.nav-back:hover{color:var(--accent);}
-.main{margin-left:var(--nav-w);flex:1;padding:28px 32px;}
+  /* Header */
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; gap: 16px; height: 52px; }
+  .header-title { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: .03em; }
+  .header-sub { font-size: 12px; color: var(--text2); }
 
-/* ===== PAGE HEADER ===== */
-.ph{display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:1px solid var(--border);margin-bottom:24px;}
-.ph-left{}
-.ph-title{font-size:18px;font-weight:700;}
-.ph-sub{font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;margin-top:3px;}
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; }
+  .tab { padding: 12px 20px; cursor: pointer; font-size: 13px; color: var(--text2); border-bottom: 2px solid transparent; transition: all .15s; white-space: nowrap; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-/* ===== PANELS / VIEWS ===== */
-.view{display:none;}
-.view.active{display:block;}
+  /* Pages */
+  .page { display: none; padding: 24px; max-width: 1100px; margin: 0 auto; }
+  .page.active { display: block; }
 
-/* ===== CARDS ===== */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;}
-.card-title{font-size:12px;font-weight:700;color:var(--text-dim);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;}
+  /* Section */
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  .section-title { font-size: 13px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px; }
 
-/* ===== FORM ===== */
-.form-row{margin-bottom:14px;}
-.form-label{font-size:11px;color:var(--text-dim);margin-bottom:5px;display:block;}
-.form-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;color:var(--text);font-size:13px;font-family:'Noto Sans JP',sans-serif;outline:none;transition:border-color 0.15s;}
-.form-input:focus{border-color:var(--accent);}
-.form-input::placeholder{color:var(--text-dim);}
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all .15s; white-space: nowrap; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #3a7ef0; }
+  .btn-success { background: var(--accent2); color: #0f1117; }
+  .btn-success:hover { background: #2cc49a; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
 
-/* ===== BUTTONS ===== */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;border:none;font-family:'Noto Sans JP',sans-serif;}
-.btn-primary{background:var(--accent);color:#0a0e1a;}
-.btn-primary:hover{background:#00cfeb;transform:translateY(-1px);}
-.btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);}
-.btn-ghost:hover{color:var(--text);border-color:rgba(0,229,255,0.3);}
-.btn-success{background:var(--accent2);color:#0a0e1a;}
-.btn-success:hover{background:#00e87a;}
-.btn-warn{background:var(--warn);color:#fff;}
-.btn-warn:hover{background:#e55a25;}
-.btn-sm{padding:5px 12px;font-size:11px;}
-.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+  /* Form */
+  .form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 12px; color: var(--text2); }
+  input[type=text], input[type=date], input[type=number], select, textarea {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); padding: 8px 12px; font-size: 13px; outline: none;
+    transition: border-color .15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  input[type=file] { display: none; }
 
-/* ===== SESSION LIST ===== */
-.session-grid{display:grid;gap:12px;}
-.session-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;transition:border-color 0.15s;cursor:pointer;}
-.session-card:hover{border-color:rgba(0,229,255,0.3);}
-.session-card.active-session{border-color:rgba(0,229,255,0.4);}
-.session-name{font-size:14px;font-weight:700;margin-bottom:4px;}
-.session-meta{font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
-.session-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:12px;font-size:10px;font-family:'JetBrains Mono',monospace;}
-.badge-open{background:rgba(0,229,255,0.12);color:var(--accent);}
-.badge-closed{background:rgba(100,116,139,0.2);color:var(--text-dim);}
-.session-actions{display:flex;gap:8px;align-items:center;}
+  /* Upload area */
+  .upload-area { border: 2px dashed var(--border); border-radius: 8px; padding: 32px; text-align: center; cursor: pointer; transition: all .15s; }
+  .upload-area:hover, .upload-area.dragover { border-color: var(--accent); background: rgba(79,142,247,.05); }
+  .upload-area .upload-icon { font-size: 32px; margin-bottom: 8px; }
+  .upload-area .upload-text { color: var(--text2); font-size: 13px; }
+  .upload-area .upload-hint { color: var(--text2); font-size: 11px; margin-top: 4px; }
 
-/* ===== MEDICINE SELECT ===== */
-.medicine-search-bar{display:flex;gap:10px;margin-bottom:14px;}
-.medicine-search-bar .form-input{flex:1;}
-.med-table-wrap{max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;}
-.med-table{width:100%;border-collapse:collapse;}
-.med-table th{background:var(--surface2);font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;padding:8px 12px;text-align:left;position:sticky;top:0;z-index:1;border-bottom:1px solid var(--border);}
-.med-table td{padding:8px 12px;font-size:12px;border-bottom:1px solid rgba(0,229,255,0.05);}
-.med-table tr:hover td{background:rgba(255,255,255,0.02);}
-.med-table tr.selected td{background:rgba(0,229,255,0.06);}
-.yj{color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:10px;}
-.select-count{font-size:11px;color:var(--accent2);font-family:'JetBrains Mono',monospace;padding:6px 0;}
+  /* Table */
+  .table-wrap { overflow-x: auto; border-radius: 6px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--surface2); color: var(--text2); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
 
-/* ===== URL SECTION ===== */
-.url-grid{display:grid;gap:10px;}
-.url-row{display:grid;grid-template-columns:100px 1fr auto;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px 14px;}
-.wholesaler-name{font-size:12px;font-weight:700;}
-.url-text{font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.url-status{font-size:10px;font-family:'JetBrains Mono',monospace;}
-.url-status.answered{color:var(--accent2);}
-.url-status.waiting{color:var(--text-dim);}
+  /* Badge */
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-blue { background: rgba(79,142,247,.15); color: var(--accent); }
+  .badge-green { background: rgba(56,217,169,.15); color: var(--green); }
+  .badge-red { background: rgba(247,111,111,.15); color: var(--red); }
+  .badge-gray { background: var(--surface2); color: var(--text2); }
 
-/* ===== COMPARE TABLE ===== */
-.compare-wrap{overflow-x:auto;}
-.compare-table{width:100%;border-collapse:collapse;min-width:800px;}
-.compare-table th{background:var(--surface2);font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;padding:9px 12px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap;}
-.compare-table th.left{text-align:left;}
-.compare-table td{padding:8px 12px;font-size:12px;border-bottom:1px solid rgba(0,229,255,0.05);text-align:center;vertical-align:middle;}
-.compare-table td.left{text-align:left;}
-.compare-table tr:hover td{background:rgba(255,255,255,0.02);}
-.price-cell{font-family:'JetBrains Mono',monospace;font-size:12px;}
-.price-best{color:var(--accent2);font-weight:700;}
-.price-none{color:var(--text-dim);font-size:10px;}
-.adopt-radio{accent-color:var(--accent2);width:16px;height:16px;cursor:pointer;}
-.stock-badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-family:'JetBrains Mono',monospace;}
-.stock-always{background:rgba(0,255,136,0.12);color:var(--accent2);}
-.stock-order{background:rgba(255,215,0,0.12);color:var(--warn2);}
-.stock-none{background:rgba(100,116,139,0.15);color:var(--text-dim);}
+  /* Alert */
+  .alert { padding: 12px 16px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; }
+  .alert-info { background: rgba(79,142,247,.1); border: 1px solid rgba(79,142,247,.3); color: var(--accent); }
+  .alert-success { background: rgba(56,217,169,.1); border: 1px solid rgba(56,217,169,.3); color: var(--green); }
+  .alert-error { background: rgba(247,111,111,.1); border: 1px solid rgba(247,111,111,.3); color: var(--red); }
 
-/* ===== EMPTY / LOADING ===== */
-.empty{text-align:center;padding:40px;color:var(--text-dim);font-size:12px;}
-.spinner{width:30px;height:30px;border:3px solid rgba(0,229,255,0.15);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.loading-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:30px;}
+  /* Progress */
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 8px 0; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .3s; }
 
-/* ===== TOAST ===== */
-.toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 18px;font-size:12px;z-index:100;transform:translateY(20px);opacity:0;transition:all 0.25s;pointer-events:none;}
-.toast.show{transform:translateY(0);opacity:1;}
-.toast.ok{border-color:rgba(0,255,136,0.4);color:var(--accent2);}
-.toast.err{border-color:rgba(255,107,53,0.4);color:var(--warn);}
+  /* URL box */
+  .url-box { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-size: 12px; font-family: monospace; color: var(--text2); display: flex; align-items: center; gap: 8px; }
+  .url-box span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .url-copy { cursor: pointer; color: var(--accent); font-size: 11px; white-space: nowrap; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--accent); transition: all .15s; }
+  .url-copy:hover { background: var(--accent); color: #fff; }
 
-/* ===== TABS ===== */
-.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border);}
-.tab{padding:8px 16px;font-size:12px;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s;}
-.tab:hover{color:var(--text);}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+  /* Wholesaler grid */
+  .wholesaler-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .wholesaler-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .wholesaler-name { font-weight: 700; margin-bottom: 8px; font-size: 13px; }
 
-/* ===== DIVIDER ===== */
-.divider{height:1px;background:var(--border);margin:20px 0;}
+  /* Compare table - price highlight */
+  .price-best { color: var(--green); font-weight: 700; }
+  .price-bad { color: var(--red); }
+  .adopted-row td { background: rgba(56,217,169,.04); }
 
-.flex-between{display:flex;align-items:center;justify-content:space-between;}
-.flex-gap{display:flex;align-items:center;gap:10px;}
-.mt8{margin-top:8px;}
-.mt16{margin-top:16px;}
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; min-width: 480px; max-width: 90vw; max-height: 85vh; overflow-y: auto; }
+  .modal-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+  /* Stats row */
+  .stats-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .stat-card { background: var(--surface2); border-radius: 6px; padding: 12px 16px; flex: 1; min-width: 120px; }
+  .stat-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+  .stat-value { font-size: 20px; font-weight: 700; }
+
+  /* Spinner */
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Checkbox */
+  input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent2); }
+
+  .text-muted { color: var(--text2); }
+  .text-sm { font-size: 12px; }
+  .mt-8 { margin-top: 8px; }
+  .flex { display: flex; }
+  .gap-8 { gap: 8px; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
 </style>
 </head>
 <body>
-<div class="layout">
 
-  <!-- NAV -->
-  <nav class="nav">
-    <div class="nav-logo">
-      <div class="nav-logo-title">💊 価格見積もり</div>
-      <div class="nav-logo-sub">QUOTE MANAGER</div>
-    </div>
-    <div class="nav-section">メニュー</div>
-    <div class="nav-item active" onclick="showView('sessions')">
-      <span>📋</span><span>セッション一覧</span>
-    </div>
-    <div class="nav-item" onclick="showView('new-session')">
-      <span>➕</span><span>新規作成</span>
-    </div>
-    <div class="nav-footer">
-      <a href="index.html" class="nav-back">← k-tracker に戻る</a>
-    </div>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="main">
-
-    <!-- ===== VIEW: セッション一覧 ===== -->
-    <div class="view active" id="view-sessions">
-      <div class="ph">
-        <div class="ph-left">
-          <div class="ph-title">見積もりセッション</div>
-          <div class="ph-sub">PRICE QUOTE SESSIONS</div>
-        </div>
-        <button class="btn btn-primary" onclick="showView('new-session')">＋ 新規作成</button>
-      </div>
-
-      <div id="session-list">
-        <div class="loading-wrap"><div class="spinner"></div></div>
-      </div>
-    </div>
-
-    <!-- ===== VIEW: 新規セッション ===== -->
-    <div class="view" id="view-new-session">
-      <div class="ph">
-        <div class="ph-left">
-          <div class="ph-title">新規セッション作成</div>
-          <div class="ph-sub">NEW SESSION</div>
-        </div>
-        <button class="btn btn-ghost" onclick="showView('sessions')">← 戻る</button>
-      </div>
-
-      <!-- Step 1: タイトル -->
-      <div class="card" id="step1-card">
-        <div class="card-title">Step 1 — セッション情報</div>
-        <div class="form-row">
-          <label class="form-label">タイトル（例：2026年5月採用追加分）</label>
-          <input class="form-input" id="ns-title" placeholder="2026年〇月採用追加分" />
-        </div>
-        <div class="form-row">
-          <label class="form-label">回答期限</label>
-          <input class="form-input" id="ns-deadline" type="datetime-local" />
-        </div>
-        <div class="mt16">
-          <button class="btn btn-primary" onclick="goToStep2()">品目選択へ →</button>
-        </div>
-      </div>
-
-      <!-- Step 2: 品目選択 -->
-      <div class="card" id="step2-card" style="display:none;">
-        <div class="card-title">Step 2 — 対象品目を選択</div>
-        <div class="medicine-search-bar">
-          <input class="form-input" id="med-search" placeholder="品名・YJコードで絞り込み…" oninput="filterMeds()" />
-          <button class="btn btn-ghost btn-sm" onclick="selectAll()">全選択</button>
-          <button class="btn btn-ghost btn-sm" onclick="clearAll()">クリア</button>
-        </div>
-        <div class="select-count" id="select-count">0 品目選択中</div>
-        <div class="med-table-wrap">
-          <table class="med-table">
-            <thead>
-              <tr>
-                <th style="width:36px;"></th>
-                <th class="left">品名</th>
-                <th>YJコード</th>
-                <th>規格</th>
-                <th>単位</th>
-                <th>卸</th>
-              </tr>
-            </thead>
-            <tbody id="med-tbody"></tbody>
-          </table>
-        </div>
-        <div class="mt16 flex-gap">
-          <button class="btn btn-ghost" onclick="backToStep1()">← 戻る</button>
-          <button class="btn btn-success" id="create-btn" onclick="createSession()" disabled>✓ セッション作成</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== VIEW: セッション詳細 ===== -->
-    <div class="view" id="view-session-detail">
-      <div class="ph">
-        <div class="ph-left">
-          <div class="ph-title" id="detail-title">—</div>
-          <div class="ph-sub" id="detail-meta">—</div>
-        </div>
-        <button class="btn btn-ghost" onclick="showView('sessions')">← 一覧に戻る</button>
-      </div>
-
-      <div class="tabs">
-        <div class="tab active" onclick="switchTab('urls')">🔗 URL発行</div>
-        <div class="tab" onclick="switchTab('compare')">📊 比較・採用</div>
-      </div>
-
-      <!-- タブ: URL発行 -->
-      <div id="tab-urls">
-        <div class="card">
-          <div class="card-title">卸向けURL — 各社にコピーして送付</div>
-          <div class="url-grid" id="url-grid"></div>
-        </div>
-      </div>
-
-      <!-- タブ: 比較 -->
-      <div id="tab-compare" style="display:none;">
-        <div class="flex-between" style="margin-bottom:14px;">
-          <div style="font-size:12px;color:var(--text-dim);">最安値を <span style="color:var(--accent2);font-weight:700;">緑</span> でハイライト表示</div>
-          <div class="flex-gap">
-            <button class="btn btn-ghost btn-sm" onclick="loadCompare()">🔄 更新</button>
-            <button class="btn btn-success btn-sm" onclick="exportCSV()">⬇ CSV出力</button>
-          </div>
-        </div>
-        <div class="card" style="padding:0;">
-          <div class="compare-wrap">
-            <table class="compare-table" id="compare-table">
-              <thead id="compare-head"></thead>
-              <tbody id="compare-body"></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="mt16" style="text-align:right;">
-          <button class="btn btn-primary" onclick="saveAdoptions()">✓ 採用を確定</button>
-        </div>
-      </div>
-    </div>
-
-  </main>
+<div class="header">
+  <div>
+    <div class="header-title">💊 価格見積もり管理システム</div>
+  </div>
+  <div style="margin-left:auto; font-size:12px; color:var(--text2)" id="db-status">接続中...</div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('master')">① マスタ取り込み</div>
+  <div class="tab" onclick="switchTab('session')">② セッション管理</div>
+  <div class="tab" onclick="switchTab('compare')">③ 比較・採用</div>
+</div>
 
-<script>
-const { createClient } = supabase;
-const sb = createClient(
-  'https://dgajlhwsjytyojzmtydk.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnYWpsaHdzanl0eW9qem10eWRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2NjMxMzAsImV4cCI6MjA4NzIzOTEzMH0.ol6u5P7zAtPM7I7u8hoZvyi6JkV6E03_vrnNJwpcR3A'
-);
+<!-- ==================== PAGE A: マスタ取り込み ==================== -->
+<div class="page active" id="page-master">
+  <div class="section">
+    <div class="section-title">orderepi CSVアップロード</div>
+    <div id="upload-area" class="upload-area" onclick="document.getElementById('csv-file').click()"
+         ondragover="event.preventDefault();this.classList.add('dragover')"
+         ondragleave="this.classList.remove('dragover')"
+         ondrop="handleDrop(event)">
+      <div class="upload-icon">📂</div>
+      <div class="upload-text">クリックまたはドラッグ＆ドロップ</div>
+      <div class="upload-hint">orderepi CSVファイル（Shift-JIS）</div>
+    </div>
+    <input type="file" id="csv-file" accept=".csv" onchange="handleFileSelect(event)">
+  </div>
 
-const WHOLESALERS = ['アトル','スズケン','ダイコー','東邦','琉薬'];
-
-// ===== STATE =====
-let allMeds = [];
-let filteredMeds = [];
-let selectedYjs = new Set();
-let currentSession = null;
-let adoptions = {}; // yj_code -> wholesaler
-
-// ===== INIT =====
-window.addEventListener('DOMContentLoaded', () => {
-  loadSessions();
-});
-
-// ===== VIEW CONTROL =====
-function showView(name) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById('view-' + name).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-  if (name === 'sessions') document.querySelectorAll('.nav-item')[0].classList.add('active');
-  if (name === 'new-session') {
-    document.querySelectorAll('.nav-item')[1].classList.add('active');
-    resetNewSession();
-    loadMeds();
-  }
-}
-
-function switchTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('tab-urls').style.display = name === 'urls' ? 'block' : 'none';
-  document.getElementById('tab-compare').style.display = name === 'compare' ? 'block' : 'none';
-  if (name === 'compare') loadCompare();
-}
-
-// ===== SESSIONS =====
-async function loadSessions() {
-  const el = document.getElementById('session-list');
-  el.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
-  const { data, error } = await sb.from('pq_sessions').select('*').order('created_at', { ascending: false });
-  if (error || !data.length) {
-    el.innerHTML = '<div class="empty">セッションがありません。「新規作成」から始めてください。</div>';
-    return;
-  }
-  el.innerHTML = '<div class="session-grid">' + data.map(s => `
-    <div class="session-card" onclick="openSession('${s.id}')">
-      <div>
-        <div class="session-name">${s.title || '無題'}</div>
-        <div class="session-meta">作成: ${fmtDt(s.created_at)}　${s.closed_at ? '期限: ' + fmtDt(s.closed_at) : ''}</div>
+  <div id="preview-section" style="display:none">
+    <div class="section">
+      <div class="flex justify-between items-center" style="margin-bottom:12px">
+        <div class="section-title" style="margin-bottom:0">プレビュー</div>
+        <div id="preview-stats" class="text-sm text-muted"></div>
       </div>
-      <div class="session-actions">
-        <span class="session-badge ${s.closed_at && new Date(s.closed_at) < new Date() ? 'badge-closed' : 'badge-open'}">
-          ${s.closed_at && new Date(s.closed_at) < new Date() ? '締切済' : 'OPEN'}
-        </span>
+      <div id="alert-area"></div>
+      <div id="progress-area" style="display:none">
+        <div class="text-sm text-muted" id="progress-text">処理中...</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      </div>
+      <div class="table-wrap" style="max-height:320px;overflow-y:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>YJコード</th><th>品名</th><th>規格・単位</th><th>メーカー</th>
+              <th>薬価</th><th>包装薬価</th><th>包装数</th><th>GS1(包装)</th><th>JANコード</th>
+            </tr>
+          </thead>
+          <tbody id="preview-body"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:14px; display:flex; gap:8px">
+        <button class="btn btn-primary" id="upload-btn" onclick="uploadMaster()">
+          DBに取り込む
+        </button>
+        <button class="btn btn-ghost" onclick="resetUpload()">キャンセル</button>
       </div>
     </div>
-  `).join('') + '</div>';
-}
+  </div>
 
-async function openSession(id) {
-  const { data } = await sb.from('pq_sessions').select('*').eq('id', id).single();
-  currentSession = data;
-  document.getElementById('detail-title').textContent = data.title || '無題';
-  document.getElementById('detail-meta').textContent = '作成: ' + fmtDt(data.created_at) + (data.closed_at ? '　期限: ' + fmtDt(data.closed_at) : '');
-  renderUrlGrid(id);
-  // タブをURLに戻す
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===0));
-  document.getElementById('tab-urls').style.display = 'block';
-  document.getElementById('tab-compare').style.display = 'none';
-  showView('session-detail');
-}
+  <div class="section">
+    <div class="flex justify-between items-center" style="margin-bottom:12px">
+      <div class="section-title" style="margin-bottom:0">登録済みマスタ</div>
+      <button class="btn btn-ghost" onclick="loadMasterList()" style="font-size:12px">🔄 更新</button>
+    </div>
+    <div id="master-stats" class="stats-row"></div>
+    <div class="table-wrap" style="max-height:300px;overflow-y:auto">
+      <table>
+        <thead>
+          <tr><th>YJコード</th><th>品名</th><th>規格・単位</th><th>メーカー</th><th>薬価</th><th>包装薬価</th><th>包装数</th></tr>
+        </thead>
+        <tbody id="master-list-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-function renderUrlGrid(sessionId) {
-  const base = window.location.origin + window.location.pathname.replace('quote_m.html','') + 'quote.html';
-  document.getElementById('url-grid').innerHTML = WHOLESALERS.map(w => {
-    const url = `${base}?session=${sessionId}&wholesaler=${encodeURIComponent(w)}`;
-    return `
-    <div class="url-row">
-      <div class="wholesaler-name">${w}</div>
-      <div class="url-text" title="${url}">${url}</div>
-      <button class="btn btn-ghost btn-sm" onclick="copyUrl('${url}','${w}')">コピー</button>
-    </div>`;
-  }).join('');
-}
+<!-- ==================== PAGE B: セッション管理 ==================== -->
+<div class="page" id="page-session">
+  <div class="section">
+    <div class="section-title">新規セッション作成</div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1;min-width:200px">
+        <label>セッションタイトル</label>
+        <input type="text" id="session-title" placeholder="例：2026年6月採用追加品目">
+      </div>
+      <div class="form-group">
+        <label>回答期限</label>
+        <input type="date" id="session-deadline">
+      </div>
+      <button class="btn btn-primary" onclick="createSession()">作成</button>
+    </div>
+  </div>
 
-function copyUrl(url, name) {
-  navigator.clipboard.writeText(url).then(() => toast(`${name} のURLをコピーしました`, 'ok'));
-}
+  <div class="section">
+    <div class="flex justify-between items-center" style="margin-bottom:12px">
+      <div class="section-title" style="margin-bottom:0">セッション一覧</div>
+      <button class="btn btn-ghost" onclick="loadSessions()" style="font-size:12px">🔄 更新</button>
+    </div>
+    <div id="session-list"></div>
+  </div>
+</div>
 
-// ===== NEW SESSION =====
-function resetNewSession() {
-  document.getElementById('ns-title').value = '';
-  document.getElementById('ns-deadline').value = '';
-  document.getElementById('step1-card').style.display = 'block';
-  document.getElementById('step2-card').style.display = 'none';
-  selectedYjs.clear();
-  updateSelectCount();
-}
+<!-- ==================== PAGE C: 比較・採用 ==================== -->
+<div class="page" id="page-compare">
+  <div class="section">
+    <div class="section-title">セッション選択</div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1">
+        <label>セッション</label>
+        <select id="compare-session-select" onchange="loadCompare()">
+          <option value="">-- セッションを選択 --</option>
+        </select>
+      </div>
+      <button class="btn btn-ghost" onclick="loadCompareSessions()" style="font-size:12px">🔄</button>
+    </div>
+  </div>
 
-function goToStep2() {
-  const title = document.getElementById('ns-title').value.trim();
-  if (!title) { toast('タイトルを入力してください', 'err'); return; }
-  document.getElementById('step1-card').style.display = 'none';
-  document.getElementById('step2-card').style.display = 'block';
-  renderMedTable();
-}
+  <div id="compare-area"></div>
+</div>
 
-function backToStep1() {
-  document.getElementById('step1-card').style.display = 'block';
-  document.getElementById('step2-card').style.display = 'none';
-}
+<!-- ==================== Modal: 品目選択 ==================== -->
+<div class="modal-overlay" id="item-modal">
+  <div class="modal" style="min-width:700px">
+    <div class="modal-title">品目選択</div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1">
+        <label>品名・YJコードで検索</label>
+        <input type="text" id="item-search" placeholder="キーワードを入力..." oninput="filterItems()">
+      </div>
+    </div>
+    <div class="table-wrap" style="max-height:360px;overflow-y:auto">
+      <table>
+        <thead>
+          <tr><th style="width:36px"><input type="checkbox" id="check-all" onchange="toggleAll(this)"></th>
+            <th>YJコード</th><th>品名</th><th>規格・単位</th><th>メーカー</th><th>包装薬価</th></tr>
+        </thead>
+        <tbody id="item-select-body"></tbody>
+      </table>
+    </div>
+    <div class="text-sm text-muted mt-8" id="item-selected-count">0件選択中</div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeItemModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="addItemsToSession()">追加する</button>
+    </div>
+  </div>
+</div>
 
-async function loadMeds() {
-  if (allMeds.length) return;
-  const { data } = await sb.from('medicines').select('yj_code,name,spec,unit,wholesaler').order('name');
-  allMeds = data || [];
-  filteredMeds = allMeds;
-}
+<!-- ==================== Modal: セッション詳細・URL発行 ==================== -->
+<div class="modal-overlay" id="session-detail-modal">
+  <div class="modal" style="min-width:680px">
+    <div class="modal-title" id="session-detail-title">セッション詳細</div>
+    <div id="session-detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeSessionModal()">閉じる</button>
+    </div>
+  </div>
+</div>
 
-function renderMedTable() {
-  const tbody = document.getElementById('med-tbody');
-  if (!filteredMeds.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">該当なし</td></tr>'; return; }
-  tbody.innerHTML = filteredMeds.map(m => `
-    <tr class="${selectedYjs.has(m.yj_code) ? 'selected' : ''}" onclick="toggleMed('${m.yj_code}')">
-      <td><input type="checkbox" ${selectedYjs.has(m.yj_code) ? 'checked' : ''} onclick="event.stopPropagation();toggleMed('${m.yj_code}')" style="accent-color:var(--accent);cursor:pointer;"></td>
-      <td>${m.name || '—'}</td>
-      <td><span class="yj">${m.yj_code || '—'}</span></td>
-      <td style="font-size:11px;color:var(--text-dim);">${m.spec || '—'}</td>
-      <td style="font-size:11px;color:var(--text-dim);">${m.unit || '—'}</td>
-      <td style="font-size:11px;color:var(--text-dim);">${m.wholesaler || '—'}</td>
-    </tr>
-  `).join('');
-}
+<script>
+const SUPABASE_URL = 'https://ipudfidnptdshywvddcf.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwdWRmaWRucHRkc2h5d3ZkZGNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjA5ODksImV4cCI6MjA5MzIzNjk4OX0.yzN4u9KAWff06x6MQwf16s88Rk7vfmEyP69GQ1HIqbQ';
+const BASE_URL = 'https://pharmacy-quote.vercel.app';
+const WHOLESALERS = ['アトル', 'スズケン', 'ダイコー', '東邦', '琉薬'];
 
-function filterMeds() {
-  const q = document.getElementById('med-search').value.toLowerCase();
-  filteredMeds = q ? allMeds.filter(m => (m.name||'').toLowerCase().includes(q) || (m.yj_code||'').includes(q)) : allMeds;
-  renderMedTable();
-}
+const sb = (path, opts = {}) => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json', 'Prefer': opts.prefer || '', ...opts.headers },
+  method: opts.method || 'GET', body: opts.body ? JSON.stringify(opts.body) : undefined
+}).then(r => r.ok ? r.json() : r.json().then(e => { throw e; }));
 
-function toggleMed(yj) {
-  if (selectedYjs.has(yj)) selectedYjs.delete(yj); else selectedYjs.add(yj);
-  updateSelectCount();
-  renderMedTable();
-}
-
-function selectAll() { filteredMeds.forEach(m => selectedYjs.add(m.yj_code)); updateSelectCount(); renderMedTable(); }
-function clearAll() { selectedYjs.clear(); updateSelectCount(); renderMedTable(); }
-
-function updateSelectCount() {
-  document.getElementById('select-count').textContent = selectedYjs.size + ' 品目選択中';
-  document.getElementById('create-btn').disabled = selectedYjs.size === 0;
-}
-
-async function createSession() {
-  const title = document.getElementById('ns-title').value.trim();
-  const deadline = document.getElementById('ns-deadline').value;
-  const btn = document.getElementById('create-btn');
-  btn.disabled = true; btn.textContent = '作成中…';
-
-  const { data: sess, error: e1 } = await sb.from('pq_sessions').insert({
-    title,
-    closed_at: deadline ? new Date(deadline).toISOString() : null
-  }).select().single();
-
-  if (e1) { toast('セッション作成失敗: ' + e1.message, 'err'); btn.disabled = false; btn.textContent = '✓ セッション作成'; return; }
-
-  const items = [...selectedYjs].map(yj => {
-    const m = allMeds.find(x => x.yj_code === yj);
-    return { session_id: sess.id, yj_code: yj, medicine_name: m ? m.name : '' };
-  });
-
-  const { error: e2 } = await sb.from('pq_items').insert(items);
-  if (e2) { toast('品目登録失敗: ' + e2.message, 'err'); return; }
-
-  toast('セッションを作成しました', 'ok');
+// ---- Init ----
+async function init() {
+  try {
+    await sb('master_medicines?select=yj_code&limit=1');
+    document.getElementById('db-status').textContent = '✅ DB接続OK';
+    document.getElementById('db-status').style.color = 'var(--green)';
+  } catch(e) {
+    document.getElementById('db-status').textContent = '❌ DB接続エラー';
+    document.getElementById('db-status').style.color = 'var(--red)';
+  }
+  loadMasterList();
   loadSessions();
-  openSession(sess.id);
 }
 
-// ===== COMPARE =====
-async function loadCompare() {
-  if (!currentSession) return;
-  const tableHead = document.getElementById('compare-head');
-  const tableBody = document.getElementById('compare-body');
-  tableBody.innerHTML = '<tr><td colspan="20"><div class="loading-wrap"><div class="spinner"></div></div></td></tr>';
+// ---- Tabs ----
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['master','session','compare'][i] === name));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (name === 'session') loadSessions();
+  if (name === 'compare') loadCompareSessions();
+}
 
-  const [{ data: items }, { data: quotes }] = await Promise.all([
-    sb.from('pq_items').select('yj_code,medicine_name').eq('session_id', currentSession.id),
-    sb.from('pq_quotes').select('*').eq('session_id', currentSession.id)
-  ]);
+// ================================================================
+// PAGE A: マスタ取り込み
+// ================================================================
+let parsedRows = [];
 
-  if (!items || !items.length) {
-    tableBody.innerHTML = '<tr><td colspan="20" class="empty">品目がありません</td></tr>';
-    return;
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-area').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) parseCSV(file);
+}
+function handleFileSelect(e) { if (e.target.files[0]) parseCSV(e.target.files[0]); }
+
+function parseCSV(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // Shift-JIS decode
+    const buf = e.target.result;
+    const decoded = new TextDecoder('shift-jis').decode(new Uint8Array(buf));
+    const lines = decoded.split('\n').filter(l => l.trim());
+    const headers = parseCSVLine(lines[0]);
+
+    // 列インデックス取得
+    const idx = {
+      yj: headers.findIndex(h => h.includes('ＹＪ') || h === 'YJコード'),
+      name: headers.findIndex(h => h === '品名'),
+      spec: headers.findIndex(h => h.includes('規格')),
+      maker: headers.findIndex(h => h === 'メーカー'),
+      drug_price: headers.findIndex(h => h === '薬価'),
+      pkg_price: headers.findIndex(h => h === '包装薬価'),
+      pkg_qty: headers.findIndex(h => h.includes('係数')),
+      gs1_pkg: headers.findIndex(h => h.includes('ＧＳ１') && h.includes('包装')),
+      gs1_disp: headers.findIndex(h => h.includes('ＧＳ１') && h.includes('調剤')),
+      jan: headers.findIndex(h => h === 'ＪＡＮコード'),
+      dosage: headers.findIndex(h => h === '剤形'),
+      poison: headers.findIndex(h => h === '毒劇薬'),
+      stop: headers.findIndex(h => h.includes('中止区分')),
+    };
+
+    parsedRows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseCSVLine(lines[i]);
+      if (!cols[idx.yj]) continue;
+      const yj = cols[idx.yj].trim();
+      if (!yj || yj === 'ＹＪコード') continue;
+      parsedRows.push({
+        yj_code: yj,
+        name: cols[idx.name] || '',
+        spec: cols[idx.spec] || '',
+        maker: cols[idx.maker] || '',
+        drug_price: parseFloat(cols[idx.drug_price]) || 0,
+        pkg_price: parseFloat(cols[idx.pkg_price]) || 0,
+        pkg_qty: parseFloat(cols[idx.pkg_qty]) || 1,
+        gs1_pkg: cols[idx.gs1_pkg] || '',
+        gs1_dispensing: cols[idx.gs1_disp] || '',
+        jan_code: cols[idx.jan] || '',
+        dosage_form: cols[idx.dosage] || '',
+        poison_flag: cols[idx.poison] || '',
+        stop_flag: cols[idx.stop] || '',
+      });
+    }
+
+    showPreview();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; continue; }
+    if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; continue; }
+    cur += c;
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+function showPreview() {
+  document.getElementById('preview-section').style.display = 'block';
+  document.getElementById('preview-stats').textContent = `${parsedRows.length}件`;
+  const body = document.getElementById('preview-body');
+  body.innerHTML = parsedRows.slice(0, 50).map(r => `
+    <tr>
+      <td class="text-sm">${r.yj_code}</td>
+      <td>${r.name}</td>
+      <td class="text-sm text-muted">${r.spec}</td>
+      <td class="text-sm text-muted">${r.maker}</td>
+      <td class="text-sm" style="text-align:right">${r.drug_price.toFixed(2)}</td>
+      <td class="text-sm" style="text-align:right">${r.pkg_price.toFixed(2)}</td>
+      <td class="text-sm" style="text-align:right">${r.pkg_qty}</td>
+      <td class="text-sm text-muted">${r.gs1_pkg}</td>
+      <td class="text-sm text-muted">${r.jan_code}</td>
+    </tr>`).join('');
+  if (parsedRows.length > 50) {
+    body.innerHTML += `<tr><td colspan="9" style="text-align:center;color:var(--text2);padding:12px">… 他${parsedRows.length - 50}件（プレビューは50件まで表示）</td></tr>`;
+  }
+}
+
+async function uploadMaster() {
+  if (!parsedRows.length) return;
+  const btn = document.getElementById('upload-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 取り込み中...';
+
+  const progArea = document.getElementById('progress-area');
+  const progFill = document.getElementById('progress-fill');
+  const progText = document.getElementById('progress-text');
+  progArea.style.display = 'block';
+
+  const CHUNK = 200;
+  let done = 0;
+  const errors = [];
+
+  for (let i = 0; i < parsedRows.length; i += CHUNK) {
+    const chunk = parsedRows.slice(i, i + CHUNK);
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/master_medicines`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify(chunk)
+      });
+      done += chunk.length;
+      const pct = Math.round(done / parsedRows.length * 100);
+      progFill.style.width = pct + '%';
+      progText.textContent = `${done} / ${parsedRows.length} 件処理中...`;
+    } catch(e) {
+      errors.push(e);
+    }
   }
 
-  // Build quote map: yj -> wholesaler -> quote
-  const qmap = {};
-  (quotes || []).forEach(q => {
-    if (!qmap[q.yj_code]) qmap[q.yj_code] = {};
-    qmap[q.yj_code][q.wholesaler] = q;
+  btn.disabled = false;
+  btn.innerHTML = 'DBに取り込む';
+  progArea.style.display = 'none';
+
+  const alertArea = document.getElementById('alert-area');
+  if (errors.length === 0) {
+    alertArea.innerHTML = `<div class="alert alert-success">✅ ${parsedRows.length}件のマスタを取り込みました</div>`;
+    loadMasterList();
+  } else {
+    alertArea.innerHTML = `<div class="alert alert-error">⚠ 一部エラーが発生しました（${errors.length}件）</div>`;
+  }
+  setTimeout(() => { alertArea.innerHTML = ''; }, 4000);
+}
+
+function resetUpload() {
+  parsedRows = [];
+  document.getElementById('preview-section').style.display = 'none';
+  document.getElementById('csv-file').value = '';
+}
+
+async function loadMasterList() {
+  try {
+    const data = await sb('master_medicines?select=yj_code,name,spec,maker,drug_price,pkg_price,pkg_qty&order=name&limit=100');
+    const statsDiv = document.getElementById('master-stats');
+    statsDiv.innerHTML = `
+      <div class="stat-card"><div class="stat-label">登録品目数</div><div class="stat-value">${data.length >= 100 ? '100+' : data.length}</div></div>
+    `;
+    // 全件数を別途取得
+    fetch(`${SUPABASE_URL}/rest/v1/master_medicines?select=yj_code`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Prefer': 'count=exact', 'Range': '0-0' }
+    }).then(r => {
+      const ct = r.headers.get('Content-Range');
+      if (ct) {
+        const total = ct.split('/')[1];
+        statsDiv.innerHTML = `<div class="stat-card"><div class="stat-label">登録品目数</div><div class="stat-value">${parseInt(total).toLocaleString()}</div></div>`;
+      }
+    });
+
+    const body = document.getElementById('master-list-body');
+    if (!data.length) {
+      body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:20px">データなし</td></tr>';
+      return;
+    }
+    body.innerHTML = data.map(r => `
+      <tr>
+        <td class="text-sm">${r.yj_code}</td>
+        <td>${r.name}</td>
+        <td class="text-sm text-muted">${r.spec || ''}</td>
+        <td class="text-sm text-muted">${r.maker || ''}</td>
+        <td class="text-sm" style="text-align:right">${r.drug_price?.toFixed(2) || '-'}</td>
+        <td class="text-sm" style="text-align:right">${r.pkg_price?.toFixed(2) || '-'}</td>
+        <td class="text-sm" style="text-align:right">${r.pkg_qty || '-'}</td>
+      </tr>`).join('');
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+// ================================================================
+// PAGE B: セッション管理
+// ================================================================
+let currentSessionId = null;
+let allMasterItems = [];
+
+async function createSession() {
+  const title = document.getElementById('session-title').value.trim();
+  const deadline = document.getElementById('session-deadline').value;
+  if (!title) { alert('タイトルを入力してください'); return; }
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/pq_sessions`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ title, deadline: deadline || null })
+    });
+    document.getElementById('session-title').value = '';
+    document.getElementById('session-deadline').value = '';
+    loadSessions();
+  } catch(e) { alert('作成エラー: ' + JSON.stringify(e)); }
+}
+
+async function loadSessions() {
+  try {
+    const data = await sb('pq_sessions?select=*&order=created_at.desc');
+    const container = document.getElementById('session-list');
+    if (!data.length) {
+      container.innerHTML = '<div class="text-muted text-sm" style="padding:12px">セッションなし</div>';
+      return;
+    }
+    container.innerHTML = data.map(s => {
+      const expired = s.deadline && new Date(s.deadline) < new Date();
+      return `
+      <div class="section" style="margin-bottom:10px;padding:16px">
+        <div class="flex justify-between items-center">
+          <div>
+            <span style="font-weight:700">${s.title}</span>
+            ${s.deadline ? `<span class="badge ${expired ? 'badge-red' : 'badge-blue'}" style="margin-left:8px">${expired ? '期限切れ' : '期限: ' + s.deadline}</span>` : ''}
+          </div>
+          <div class="flex gap-8">
+            <button class="btn btn-ghost" onclick="openSessionDetail('${s.id}','${s.title.replace(/'/g,'\\\'')}')" style="font-size:12px">品目・URL管理</button>
+            <button class="btn btn-danger" onclick="deleteSession('${s.id}')" style="font-size:12px;padding:6px 10px">削除</button>
+          </div>
+        </div>
+        <div class="text-sm text-muted" style="margin-top:4px">作成: ${s.created_at?.slice(0,10)}</div>
+      </div>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function deleteSession(id) {
+  if (!confirm('このセッションを削除しますか？（品目・回答データも削除されます）')) return;
+  await fetch(`${SUPABASE_URL}/rest/v1/pq_sessions?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+  });
+  loadSessions();
+}
+
+async function openSessionDetail(sessionId, sessionTitle) {
+  currentSessionId = sessionId;
+  document.getElementById('session-detail-title').textContent = sessionTitle;
+  document.getElementById('session-detail-modal').classList.add('open');
+  await renderSessionDetail(sessionId);
+}
+
+async function renderSessionDetail(sessionId) {
+  const body = document.getElementById('session-detail-body');
+  body.innerHTML = '<div class="text-muted text-sm">読み込み中...</div>';
+  try {
+    const items = await sb(`pq_items?session_id=eq.${sessionId}&select=*&order=name`);
+    const origin = window.location.origin.includes('localhost') ? BASE_URL : window.location.origin;
+
+    let html = `
+      <div style="margin-bottom:14px">
+        <button class="btn btn-primary" onclick="openItemModal()">＋ 品目を追加</button>
+      </div>`;
+
+    if (!items.length) {
+      html += '<div class="text-muted text-sm" style="margin-bottom:16px">品目が未登録です</div>';
+    } else {
+      html += `
+        <div class="table-wrap" style="max-height:220px;overflow-y:auto;margin-bottom:16px">
+          <table>
+            <thead><tr><th>YJコード</th><th>品名</th><th>規格</th><th>包装薬価</th><th></th></tr></thead>
+            <tbody>${items.map(it => `
+              <tr>
+                <td class="text-sm">${it.yj_code}</td>
+                <td>${it.name}</td>
+                <td class="text-sm text-muted">${it.spec || ''}</td>
+                <td class="text-sm" style="text-align:right">${it.pkg_price?.toFixed(2) || '-'}</td>
+                <td><button class="btn btn-ghost" onclick="removeItem('${it.id}')" style="font-size:11px;padding:4px 8px">削除</button></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    if (items.length > 0) {
+      html += '<div class="section-title">卸ごとのURL</div>';
+      html += '<div class="wholesaler-grid">';
+      for (const w of WHOLESALERS) {
+        const url = `${origin}/quote.html?session=${sessionId}&wholesaler=${encodeURIComponent(w)}`;
+        html += `
+          <div class="wholesaler-card">
+            <div class="wholesaler-name">${w}</div>
+            <div class="url-box">
+              <span id="url-${w}">${url}</span>
+              <span class="url-copy" onclick="copyUrl('url-${w}')">コピー</span>
+            </div>
+          </div>`;
+      }
+      html += '</div>';
+    }
+
+    body.innerHTML = html;
+  } catch(e) { body.innerHTML = `<div class="alert alert-error">エラー: ${JSON.stringify(e)}</div>`; }
+}
+
+function copyUrl(elId) {
+  const url = document.getElementById(elId).textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const el = document.getElementById(elId).nextElementSibling;
+    const orig = el.textContent;
+    el.textContent = 'コピー済み！';
+    setTimeout(() => el.textContent = orig, 1500);
+  });
+}
+
+function closeSessionModal() {
+  document.getElementById('session-detail-modal').classList.remove('open');
+  currentSessionId = null;
+  loadSessions();
+}
+
+async function removeItem(itemId) {
+  if (!confirm('この品目を削除しますか？')) return;
+  await fetch(`${SUPABASE_URL}/rest/v1/pq_items?id=eq.${itemId}`, {
+    method: 'DELETE',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+  });
+  await renderSessionDetail(currentSessionId);
+}
+
+// ---- Item Modal ----
+async function openItemModal() {
+  document.getElementById('item-modal').classList.add('open');
+  document.getElementById('item-search').value = '';
+  if (!allMasterItems.length) {
+    // 全件取得（ページング）
+    allMasterItems = [];
+    let from = 0;
+    while (true) {
+      const chunk = await fetch(`${SUPABASE_URL}/rest/v1/master_medicines?select=yj_code,name,spec,maker,pkg_price&order=name&limit=1000&offset=${from}`, {
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+      }).then(r => r.json());
+      allMasterItems = allMasterItems.concat(chunk);
+      if (chunk.length < 1000) break;
+      from += 1000;
+    }
+  }
+  filterItems();
+}
+
+function filterItems() {
+  const q = document.getElementById('item-search').value.toLowerCase();
+  const filtered = allMasterItems.filter(m =>
+    m.name.toLowerCase().includes(q) || m.yj_code.includes(q)
+  );
+  const body = document.getElementById('item-select-body');
+  body.innerHTML = filtered.slice(0, 200).map(m => `
+    <tr>
+      <td><input type="checkbox" class="item-check" value="${m.yj_code}" onchange="updateSelectedCount()"></td>
+      <td class="text-sm">${m.yj_code}</td>
+      <td>${m.name}</td>
+      <td class="text-sm text-muted">${m.spec || ''}</td>
+      <td class="text-sm text-muted">${m.maker || ''}</td>
+      <td class="text-sm" style="text-align:right">${m.pkg_price?.toFixed(2) || '-'}</td>
+    </tr>`).join('');
+  updateSelectedCount();
+}
+
+function toggleAll(cb) {
+  document.querySelectorAll('.item-check').forEach(c => c.checked = cb.checked);
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const n = document.querySelectorAll('.item-check:checked').length;
+  document.getElementById('item-selected-count').textContent = `${n}件選択中`;
+}
+
+function closeItemModal() {
+  document.getElementById('item-modal').classList.remove('open');
+}
+
+async function addItemsToSession() {
+  const checked = [...document.querySelectorAll('.item-check:checked')].map(c => c.value);
+  if (!checked.length) { alert('品目を選択してください'); return; }
+
+  // 既存品目取得
+  const existing = await sb(`pq_items?session_id=eq.${currentSessionId}&select=yj_code`);
+  const existingCodes = new Set(existing.map(e => e.yj_code));
+  const toAdd = checked.filter(c => !existingCodes.has(c));
+
+  if (!toAdd.length) { alert('選択した品目はすでに追加済みです'); return; }
+
+  const masterMap = Object.fromEntries(allMasterItems.map(m => [m.yj_code, m]));
+  const rows = toAdd.map(yj => {
+    const m = masterMap[yj] || {};
+    return {
+      session_id: currentSessionId,
+      yj_code: yj,
+      name: m.name || '',
+      spec: m.spec || '',
+      pkg_price: m.pkg_price || 0,
+      pkg_qty: m.pkg_qty || 1,
+      price_factor: m.price_factor || 1,
+      gs1_pkg: m.gs1_pkg || '',
+    };
   });
 
-  // Head
-  tableHead.innerHTML = `<tr>
-    <th class="left" style="min-width:180px;">品名</th>
-    <th class="left">YJ</th>
-    ${WHOLESALERS.map(w => `<th>${w}<br><span style="font-size:9px;font-weight:400;color:var(--text-dim);">価格 / 在庫区分</span></th>`).join('')}
-    <th>採用</th>
-  </tr>`;
-
-  tableBody.innerHTML = items.map(item => {
-    const yj = item.yj_code;
-    const prices = WHOLESALERS.map(w => qmap[yj]?.[w]?.quoted_price).filter(p => p != null && p > 0);
-    const minPrice = prices.length ? Math.min(...prices) : null;
-
-    const cells = WHOLESALERS.map(w => {
-      const q = qmap[yj]?.[w];
-      if (!q) return `<td><span class="price-none">—</span></td>`;
-      const isBest = q.quoted_price != null && q.quoted_price > 0 && q.quoted_price === minPrice;
-      const stockClass = q.stock_type === '常備' ? 'stock-always' : q.stock_type === '受発注' ? 'stock-order' : 'stock-none';
-      return `<td>
-        <div class="price-cell ${isBest ? 'price-best' : ''}">¥${Number(q.quoted_price).toLocaleString()}</div>
-        <span class="stock-badge ${stockClass}">${q.stock_type || '—'}</span>
-        ${q.notes ? `<div style="font-size:9px;color:var(--text-dim);margin-top:2px;">${q.notes}</div>` : ''}
-      </td>`;
-    }).join('');
-
-    const radioGroup = WHOLESALERS.map(w => {
-      const q = qmap[yj]?.[w];
-      if (!q || !q.quoted_price) return '';
-      const checked = adoptions[yj] === w ? 'checked' : '';
-      return `<label style="display:flex;align-items:center;gap:3px;font-size:10px;cursor:pointer;">
-        <input type="radio" class="adopt-radio" name="adopt_${yj}" value="${w}" ${checked} onchange="adoptions['${yj}']='${w}'">
-        ${w}
-      </label>`;
-    }).join('');
-
-    return `<tr>
-      <td class="left" style="font-size:12px;">${item.medicine_name || yj}</td>
-      <td class="left"><span class="yj">${yj}</span></td>
-      ${cells}
-      <td><div style="display:flex;flex-direction:column;gap:4px;">${radioGroup || '<span class="price-none">回答なし</span>'}</div></td>
-    </tr>`;
-  }).join('');
-}
-
-async function saveAdoptions() {
-  if (!currentSession) return;
-  const entries = Object.entries(adoptions);
-  if (!entries.length) { toast('採用を選択してください', 'err'); return; }
-  toast(`${entries.length} 品目の採用を保存しました（CSV出力で確認）`, 'ok');
-}
-
-function exportCSV() {
-  if (!currentSession) return;
-  const rows = [['YJコード','品名','採用卸','提示価格','在庫区分']];
-  // Collect from current compare table
-  document.querySelectorAll('#compare-body tr').forEach(tr => {
-    const yj = tr.querySelector('.yj')?.textContent;
-    const name = tr.cells[0]?.textContent?.trim();
-    if (!yj) return;
-    const w = adoptions[yj];
-    if (!w) return;
-    rows.push([yj, name, w, '', '']);
+  await fetch(`${SUPABASE_URL}/rest/v1/pq_items`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify(rows)
   });
-  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url;
-  a.download = `見積もり_${currentSession.title || 'export'}_${fmtDate(new Date())}.csv`;
-  a.click(); URL.revokeObjectURL(url);
+
+  closeItemModal();
+  await renderSessionDetail(currentSessionId);
 }
 
-// ===== UTILS =====
-function fmtDt(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+// ================================================================
+// PAGE C: 比較・採用
+// ================================================================
+async function loadCompareSessions() {
+  const sel = document.getElementById('compare-session-select');
+  const cur = sel.value;
+  const data = await sb('pq_sessions?select=id,title&order=created_at.desc');
+  sel.innerHTML = '<option value="">-- セッションを選択 --</option>' +
+    data.map(s => `<option value="${s.id}" ${s.id === cur ? 'selected' : ''}>${s.title}</option>`).join('');
 }
-function fmtDate(d) {
-  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+
+async function loadCompare() {
+  const sessionId = document.getElementById('compare-session-select').value;
+  const area = document.getElementById('compare-area');
+  if (!sessionId) { area.innerHTML = ''; return; }
+  area.innerHTML = '<div class="text-muted text-sm" style="padding:12px">読み込み中...</div>';
+
+  const [items, quotes] = await Promise.all([
+    sb(`pq_items?session_id=eq.${sessionId}&select=*&order=name`),
+    sb(`pq_quotes?session_id=eq.${sessionId}&select=*`)
+  ]);
+
+  if (!items.length) { area.innerHTML = '<div class="section text-muted text-sm">品目がありません</div>'; return; }
+
+  // quoteをitem×wholesalerでインデックス化
+  const qIdx = {};
+  for (const q of quotes) { qIdx[`${q.item_id}_${q.wholesaler}`] = q; }
+
+  // 各品目の最安値を計算
+  const bestPrice = {};
+  for (const it of items) {
+    const prices = WHOLESALERS.map(w => qIdx[`${it.id}_${w}`]?.price).filter(p => p > 0);
+    if (prices.length) bestPrice[it.id] = Math.min(...prices);
+  }
+
+  const answered = WHOLESALERS.filter(w => items.some(it => qIdx[`${it.id}_${w}`]));
+
+  let html = `
+    <div class="section">
+      <div class="flex justify-between items-center" style="margin-bottom:14px">
+        <div class="section-title" style="margin-bottom:0">回答比較</div>
+        <button class="btn btn-success" onclick="exportAdopted('${sessionId}')">📥 採用CSV出力</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>品名</th><th>規格</th><th>包装薬価</th>
+              ${WHOLESALERS.map(w => `<th>${w}</th>`).join('')}
+              <th>採用</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+  for (const it of items) {
+    const isAdopted = quotes.some(q => q.item_id === it.id && q.adopted);
+    html += `<tr class="${isAdopted ? 'adopted-row' : ''}">
+      <td style="white-space:nowrap">${it.name}</td>
+      <td class="text-sm text-muted">${it.spec || ''}</td>
+      <td class="text-sm" style="text-align:right">${it.pkg_price?.toFixed(2) || '-'}</td>`;
+
+    for (const w of WHOLESALERS) {
+      const q = qIdx[`${it.id}_${w}`];
+      if (!q) {
+        html += '<td class="text-muted text-sm" style="text-align:center">-</td>';
+      } else if (q.stock_type === '取扱なし') {
+        html += '<td><span class="badge badge-gray">取扱なし</span></td>';
+      } else {
+        const isBest = q.price === bestPrice[it.id];
+        const rate = it.pkg_price > 0 ? (q.price / it.pkg_price * 100) : null;
+        const rateColor = rate !== null ? (rate <= 90.9 ? 'var(--green)' : 'var(--red)') : '';
+        html += `<td style="text-align:right">
+          <div class="${isBest ? 'price-best' : ''}">${q.price?.toLocaleString()}</div>
+          ${rate !== null ? `<div style="font-size:11px;color:${rateColor}">${rate.toFixed(1)}%</div>` : ''}
+          <div style="font-size:11px;color:var(--text2)">${q.stock_type || ''}</div>
+        </td>`;
+      }
+    }
+
+    // 採用チェック
+    const adoptedQ = quotes.find(q => q.item_id === it.id && q.adopted);
+    html += `<td>
+      <select style="font-size:12px;padding:4px 8px;min-width:80px" onchange="setAdopted('${it.id}', this.value, '${sessionId}')">
+        <option value="">-</option>
+        ${WHOLESALERS.map(w => {
+          const q = qIdx[`${it.id}_${w}`];
+          if (!q || q.stock_type === '取扱なし') return '';
+          return `<option value="${w}" ${adoptedQ?.wholesaler === w ? 'selected' : ''}>${w}</option>`;
+        }).join('')}
+      </select>
+    </td></tr>`;
+  }
+
+  html += '</tbody></table></div></div>';
+  area.innerHTML = html;
 }
-function toast(msg, type='ok') {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.className = 'toast show ' + type;
-  setTimeout(() => el.classList.remove('show'), 2800);
+
+async function setAdopted(itemId, wholesaler, sessionId) {
+  // 全quoteのadoptedをリセット
+  const allQ = await sb(`pq_quotes?item_id=eq.${itemId}&select=id`);
+  for (const q of allQ) {
+    await fetch(`${SUPABASE_URL}/rest/v1/pq_quotes?id=eq.${q.id}`, {
+      method: 'PATCH',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adopted: false })
+    });
+  }
+  if (wholesaler) {
+    await fetch(`${SUPABASE_URL}/rest/v1/pq_quotes?item_id=eq.${itemId}&wholesaler=eq.${wholesaler}`, {
+      method: 'PATCH',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adopted: true })
+    });
+  }
 }
+
+async function exportAdopted(sessionId) {
+  const [items, quotes] = await Promise.all([
+    sb(`pq_items?session_id=eq.${sessionId}&select=*&order=name`),
+    sb(`pq_quotes?session_id=eq.${sessionId}&adopted=eq.true&select=*`)
+  ]);
+  const qMap = Object.fromEntries(quotes.map(q => [q.item_id, q]));
+  const rows = [['YJコード','品名','規格','GS1(包装)','包装薬価','採用卸','採用価格','薬価率(%)','在庫区分','備考']];
+  for (const it of items) {
+    const q = qMap[it.id];
+    const price = q?.price || '';
+    const rate = price && it.pkg_price ? (price / it.pkg_price * 100).toFixed(1) : '';
+    rows.push([it.yj_code, it.name, it.spec || '', it.gs1_pkg || '', it.pkg_price || '',
+      q?.wholesaler || '', price, rate, q?.stock_type || '', q?.note || '']);
+  }
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `採用価格_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+
+// ---- Boot ----
+init();
 </script>
 </body>
 </html>

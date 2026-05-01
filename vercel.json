@@ -2,11 +2,11 @@
   "version": 2,
   "builds": [
     { "src": "quote_m.html", "use": "@vercel/static" },
-    { "src": "quote.html", "use": "@vercel/static" }
+    { "src": "quote.html",   "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/quote_m", "dest": "/quote_m.html" },
-    { "src": "/quote", "dest": "/quote.html" },
-    { "src": "/", "dest": "/quote_m.html" }
+    { "src": "/quote",   "dest": "/quote.html" },
+    { "src": "/",        "dest": "/quote_m.html" }
   ]
 }
