@@ -139,11 +139,15 @@ async function init() {
   const yjCodes = pqItems.map(i => i.yj_code);
   const [{ data: gs1Data }, { data: medData }] = await Promise.all([
     sb.from('gs1_map').select('gtin,yj_code,pkg_type').in('yj_code', yjCodes).eq('pkg_type', '包装'),
-    sb.from('medicines').select('yj_code,price').in('yj_code', yjCodes)
+    sb.from('medicines').select('yj_code,price,pkg_qty').in('yj_code', yjCodes)
   ]);
 
   const yakkaMap = {};
-  (medData || []).forEach(m => { yakkaMap[m.yj_code] = parseFloat(m.price) || 0; });
+  const pkgQtyMap = {};
+  (medData || []).forEach(m => {
+    yakkaMap[m.yj_code] = parseFloat(m.price) || 0;
+    pkgQtyMap[m.yj_code] = parseInt(m.pkg_qty) || 1;
+  });
 
   const gs1ByYj = {};
   (gs1Data || []).forEach(g => {
@@ -156,11 +160,12 @@ async function init() {
   pqItems.forEach(item => {
     const gtins = gs1ByYj[item.yj_code] || [];
     const yakka = yakkaMap[item.yj_code] || 0;
+    const pkgQty = pkgQtyMap[item.yj_code] || 1;
     if (gtins.length === 0) {
-      rows.push({ yj_code: item.yj_code, medicine_name: item.medicine_name, gtin: null, yakka });
+      rows.push({ yj_code: item.yj_code, medicine_name: item.medicine_name, gtin: null, yakka, pkgQty });
     } else {
       gtins.forEach(gtin => {
-        rows.push({ yj_code: item.yj_code, medicine_name: item.medicine_name, gtin, yakka });
+        rows.push({ yj_code: item.yj_code, medicine_name: item.medicine_name, gtin, yakka, pkgQty });
       });
     }
   });
@@ -235,11 +240,11 @@ function buildTableRows() {
       const row = rows[i + s];
       const idx = i + s;
       const gtinHtml = row.gtin
-        ? `<div class="gtin-wrap"><span class="gtin-code">${row.gtin}</span><button class="gtin-copy" onclick="copyGtin('${row.gtin}')">コピー</button></div>`
+        ? `<div class="gtin-wrap"><span class="gtin-code">${row.gtin}</span><span style="font-size:10px;color:var(--text-dim);">×${row.pkgQty}</span><button class="gtin-copy" onclick="copyGtin('${row.gtin}')">コピー</button></div>`
         : '<span class="gtin-none">—</span>';
       const inputCells = `
         <td class="center">${gtinHtml}</td>
-        <td class="center"><input type="number" class="price-input" id="price-${idx}" placeholder="例: 38500" min="0" step="1" oninput="updateProgress();calcRate(${idx},${row.yakka})"></td>
+        <td class="center"><input type="number" class="price-input" id="price-${idx}" placeholder="例: 38500" min="0" step="1" oninput="updateProgress();calcRate(${idx},${row.yakka},${row.pkgQty})"></td>
         <td class="center" id="rate-${idx}"><span class="yakka-rate empty">—</span></td>
         <td class="center"><select class="stock-select" id="stock-${idx}" onchange="updateProgress()"><option value="">選択…</option>${STOCK_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}</select></td>
         <td><textarea class="note-input" id="note-${idx}" rows="1" placeholder="条件など"></textarea></td>`;
@@ -249,7 +254,7 @@ function buildTableRows() {
           <td rowspan="${span}">
             <div class="med-name">${row.medicine_name || '—'}</div>
             <div class="med-yj">${yj}</div>
-            ${row.yakka ? `<div class="med-yakka">薬価 ¥${row.yakka.toLocaleString()}</div>` : ''}
+            ${row.yakka ? `<div class="med-yakka">薬価 ¥${row.yakka.toLocaleString()} × ${row.pkgQty}包装</div>` : ''}
           </td>${inputCells}</tr>`;
       } else {
         html += `<tr>${inputCells}</tr>`;
@@ -260,12 +265,13 @@ function buildTableRows() {
   tbody.innerHTML = html;
 }
 
-function calcRate(idx, yakka) {
+function calcRate(idx, yakka, pkgQty) {
   const price = parseFloat(document.getElementById('price-' + idx)?.value) || 0;
   const cell = document.getElementById('rate-' + idx);
   if (!cell) return;
-  if (!price || !yakka) { cell.innerHTML = '<span class="yakka-rate empty">—</span>'; return; }
-  const rate = (price / yakka * 100).toFixed(1);
+  const base = yakka * (pkgQty || 1);
+  if (!price || !base) { cell.innerHTML = '<span class="yakka-rate empty">—</span>'; return; }
+  const rate = (price / base * 100).toFixed(1);
   cell.innerHTML = `<span class="yakka-rate ${parseFloat(rate) <= 100 ? 'good' : ''}">${rate}%</span>`;
 }
 
@@ -293,7 +299,7 @@ function exportCSV(timing) {
     const price = document.getElementById('price-' + idx)?.value || '';
     const stock = document.getElementById('stock-' + idx)?.value || '';
     const note = document.getElementById('note-' + idx)?.value || '';
-    const rate = (price && row.yakka) ? (parseFloat(price) / row.yakka * 100).toFixed(1) : '';
+    const rate = (price && row.yakka) ? (parseFloat(price) / (row.yakka * (row.pkgQty || 1)) * 100).toFixed(1) : '';
     csvRows.push([row.medicine_name || '', row.yj_code, row.gtin || '', row.yakka || '', price, rate, stock, note]);
   });
   const csv = csvRows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
