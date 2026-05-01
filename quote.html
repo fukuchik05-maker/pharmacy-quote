@@ -104,6 +104,13 @@ tbody td.center{text-align:center;}
 .progress-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden;}
 .progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.3s;}
 
+.gtin-wrap{display:flex;flex-direction:column;gap:4px;align-items:center;}
+.gtin-code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:0.05em;}
+.gtin-copy{background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);font-size:10px;padding:2px 8px;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans JP',sans-serif;}
+.gtin-copy:hover{border-color:rgba(0,229,255,0.4);color:var(--accent);}
+.gtin-none{font-size:10px;color:var(--text-dim);}
+.gtin-multi{display:flex;flex-direction:column;gap:3px;}
+
 @media(max-width:600px){
   .price-input{width:90px;}
   .header-info{flex-direction:column;gap:8px;}
@@ -139,6 +146,7 @@ const WHOLESALER = params.get('wholesaler');
 let sessionData = null;
 let items = [];
 let submitted = false;
+let gs1Map = {}; // yj_code -> [{gtin, pkg_type}]
 
 window.addEventListener('DOMContentLoaded', init);
 
@@ -188,6 +196,18 @@ async function init() {
   }
 
   items = pqItems;
+
+  // GS1マップ取得
+  const yjCodes = items.map(i => i.yj_code);
+  const { data: gs1Data } = await sb
+    .from('gs1_map')
+    .select('gtin,yj_code,pkg_type')
+    .in('yj_code', yjCodes);
+  (gs1Data || []).forEach(g => {
+    if (!gs1Map[g.yj_code]) gs1Map[g.yj_code] = [];
+    gs1Map[g.yj_code].push({ gtin: g.gtin, pkg_type: g.pkg_type || '' });
+  });
+
   renderForm();
 }
 
@@ -227,6 +247,7 @@ function renderForm() {
         <thead>
           <tr>
             <th style="min-width:180px;">品名</th>
+            <th class="center" style="min-width:160px;">GS1/GTIN</th>
             <th class="center">提示価格（円）</th>
             <th class="center">在庫区分</th>
             <th style="min-width:160px;">備考・条件</th>
@@ -238,6 +259,9 @@ function renderForm() {
               <td>
                 <div class="med-name">${item.medicine_name || '—'}</div>
                 <div class="med-yj">${item.yj_code}</div>
+              </td>
+              <td class="center" id="gs1-cell-${i}">
+                <span class="gtin-loading">—</span>
               </td>
               <td class="center">
                 <input type="number" class="price-input" id="price-${i}"
@@ -265,11 +289,64 @@ function renderForm() {
         全品目の「提示価格」と「在庫区分」を入力してから送信してください。<br>
         取扱いのない品目は価格欄を空白のまま「取扱なし」を選択してください。
       </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <button class="btn btn-ghost" style="flex:1;justify-content:center;" onclick="exportCSV('before')">
+          📄 入力内容をCSV出力（送信前確認用）
+        </button>
+      </div>
       <button class="btn btn-primary btn-full" id="submit-btn" onclick="submitQuote()">
         ✓ 回答を送信する
       </button>
     </div>
   `;
+  renderGs1Cells();
+}
+
+function renderGs1Cells() {
+  items.forEach((item, i) => {
+    const cell = document.getElementById('gs1-cell-' + i);
+    if (!cell) return;
+    const gtins = gs1Map[item.yj_code];
+    if (!gtins || !gtins.length) {
+      cell.innerHTML = '<span class="gtin-none">—</span>';
+      return;
+    }
+    cell.innerHTML = '<div class="gtin-multi">' + gtins.map(g => `
+      <div class="gtin-wrap">
+        <span class="gtin-code">${g.gtin}</span>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <span style="font-size:9px;color:var(--text-dim);">${g.pkg_type}</span>
+          <button class="gtin-copy" onclick="copyGtin('${g.gtin}')">コピー</button>
+        </div>
+      </div>
+    `).join('') + '</div>';
+  });
+}
+
+function copyGtin(gtin) {
+  navigator.clipboard.writeText(gtin).then(() => toast('GTINをコピーしました', 'ok'));
+}
+
+function exportCSV(timing) {
+  const rows = [['品名', 'YJコード', 'GTIN（バラ）', 'GTIN（包装）', '提示価格（円）', '在庫区分', '備考']];
+  items.forEach((item, i) => {
+    const gtins = gs1Map[item.yj_code] || [];
+    const bara = gtins.find(g => g.pkg_type === 'バラ')?.gtin || '';
+    const hoso = gtins.find(g => g.pkg_type === '包装')?.gtin || '';
+    const price = document.getElementById('price-' + i)?.value || '';
+    const stock = document.getElementById('stock-' + i)?.value || '';
+    const note = document.getElementById('note-' + i)?.value || '';
+    rows.push([item.medicine_name || '', item.yj_code, bara, hoso, price, stock, note]);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const label = timing === 'after' ? '回答控え' : '入力確認';
+  a.download = `見積もり_${WHOLESALER}_${label}_${fmtDate(new Date())}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function updateStockStyle(i) {
@@ -326,7 +403,7 @@ async function submitQuote() {
   }
 
   submitted = true;
-  renderSuccess('回答を送信しました', `${WHOLESALER} 様の回答を受け付けました。\nご協力ありがとうございました。`);
+  renderSuccess('回答を送信しました', `${WHOLESALER} 様の回答を受け付けました。\nご協力ありがとうございました。`, true);
 }
 
 // ===== RENDER STATES =====
@@ -344,7 +421,13 @@ function renderError(title, msg) {
     </div>`;
 }
 
-function renderSuccess(title, msg) {
+function renderSuccess(title, msg, showCsv = false) {
+  const csvBtn = showCsv ? `
+    <div style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="exportCSV('after')" style="margin:0 auto;">
+        📄 回答内容をCSVで保存
+      </button>
+    </div>` : '';
   document.getElementById('app').innerHTML = `
     <div class="header">
       <div class="header-top"><div class="logo">💊</div><div class="header-title">価格回答フォーム</div></div>
@@ -354,6 +437,7 @@ function renderSuccess(title, msg) {
         <div class="success-icon">✅</div>
         <div class="success-title">${title}</div>
         <div class="success-msg">${msg.replace(/\n/g,'<br>')}</div>
+        ${csvBtn}
       </div>
     </div>`;
 }
