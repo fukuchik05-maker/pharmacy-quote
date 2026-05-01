@@ -15,124 +15,82 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;padding:24px 16px 60px;}
-
-.container{max-width:860px;margin:0 auto;}
-
-/* HEADER */
+.container{max-width:960px;margin:0 auto;}
 .header{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:24px;}
 .header-top{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
 .logo{font-size:20px;}
 .header-title{font-size:16px;font-weight:700;}
 .header-sub{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
-.header-info{display:flex;gap:20px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.header-info{display:flex;gap:20px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;}
 .info-item{font-size:12px;}
 .info-label{color:var(--text-dim);margin-right:6px;}
 .info-val{color:var(--accent);font-weight:700;}
 .wholesaler-badge{display:inline-block;background:rgba(0,229,255,0.12);color:var(--accent);border:1px solid rgba(0,229,255,0.3);border-radius:20px;padding:4px 14px;font-size:13px;font-weight:700;}
-
-/* NOTICE */
-.notice{background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.2);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--warn2);}
-
-/* TABLE */
+.notice{background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.2);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--warn2);line-height:1.7;}
 .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:24px;}
 .table-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .table-title{font-size:12px;font-weight:700;color:var(--text-dim);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;}
 .item-count{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
-
 table{width:100%;border-collapse:collapse;}
 thead th{background:var(--surface2);font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
 thead th.center{text-align:center;}
 tbody tr{border-bottom:1px solid rgba(0,229,255,0.05);}
 tbody tr:last-child{border-bottom:none;}
-tbody tr:hover{background:rgba(255,255,255,0.015);}
+tbody tr:hover td{background:rgba(255,255,255,0.015);}
 tbody td{padding:10px 12px;font-size:12px;vertical-align:middle;}
 tbody td.center{text-align:center;}
-
 .med-name{font-size:13px;font-weight:500;margin-bottom:2px;}
 .med-yj{font-size:10px;color:var(--accent);font-family:'JetBrains Mono',monospace;}
-
-/* INPUTS */
+.med-yakka{font-size:10px;color:var(--text-dim);margin-top:2px;}
 .price-input{width:110px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace;text-align:right;outline:none;transition:border-color 0.15s;}
 .price-input:focus{border-color:var(--accent);}
 .price-input::placeholder{color:var(--text-dim);font-size:11px;}
-
 .stock-select{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12px;outline:none;cursor:pointer;transition:border-color 0.15s;min-width:100px;}
 .stock-select:focus{border-color:var(--accent);}
 .stock-select option{background:var(--surface2);}
-
 .note-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12px;outline:none;transition:border-color 0.15s;resize:none;font-family:'Noto Sans JP',sans-serif;}
 .note-input:focus{border-color:var(--accent);}
 .note-input::placeholder{color:var(--text-dim);}
-
-/* STOCK BADGE */
-.stock-always{color:var(--accent2);}
-.stock-order{color:var(--warn2);}
-.stock-none{color:var(--text-dim);}
-
-/* SUBMIT AREA */
+.gtin-wrap{display:inline-flex;align-items:center;gap:6px;}
+.gtin-code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:0.03em;}
+.gtin-copy{background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);font-size:10px;padding:2px 7px;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans JP',sans-serif;}
+.gtin-copy:hover{border-color:rgba(0,229,255,0.4);color:var(--accent);}
+.gtin-none{font-size:10px;color:var(--text-dim);}
+.yakka-rate{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--warn2);}
+.yakka-rate.good{color:var(--accent2);}
+.yakka-rate.empty{color:var(--text-dim);font-size:10px;}
 .submit-area{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;}
 .submit-note{font-size:12px;color:var(--text-dim);margin-bottom:16px;line-height:1.7;}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.15s;border:none;font-family:'Noto Sans JP',sans-serif;}
 .btn-primary{background:var(--accent);color:#0a0e1a;}
 .btn-primary:hover{background:#00cfeb;transform:translateY(-1px);}
 .btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
+.btn-ghost:hover{border-color:rgba(0,229,255,0.3);color:var(--text);}
 .btn-full{width:100%;justify-content:center;}
-
-/* STATES */
 .loading-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:60px 20px;text-align:center;}
 .spinner{width:36px;height:36px;border:3px solid rgba(0,229,255,0.15);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .loading-text{font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
-
-.error-wrap{text-align:center;padding:60px 20px;}
-.error-icon{font-size:40px;margin-bottom:12px;}
-.error-title{font-size:16px;font-weight:700;margin-bottom:8px;}
-.error-msg{font-size:12px;color:var(--text-dim);}
-
-.success-wrap{text-align:center;padding:60px 20px;}
-.success-icon{font-size:48px;margin-bottom:16px;}
-.success-title{font-size:20px;font-weight:700;margin-bottom:8px;color:var(--accent2);}
-.success-msg{font-size:13px;color:var(--text-dim);line-height:1.7;}
-
-/* TOAST */
+.error-wrap,.success-wrap{text-align:center;padding:60px 20px;}
+.error-icon,.success-icon{font-size:40px;margin-bottom:12px;}
+.error-title,.success-title{font-size:16px;font-weight:700;margin-bottom:8px;}
+.success-title{font-size:20px;color:var(--accent2);}
+.error-msg,.success-msg{font-size:12px;color:var(--text-dim);line-height:1.7;}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 18px;font-size:12px;z-index:100;transform:translateY(20px);opacity:0;transition:all 0.25s;pointer-events:none;max-width:280px;}
 .toast.show{transform:translateY(0);opacity:1;}
 .toast.ok{border-color:rgba(0,255,136,0.4);color:var(--accent2);}
 .toast.err{border-color:rgba(255,107,53,0.4);color:var(--warn);}
-
-/* PROGRESS */
 .progress-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden;}
 .progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.3s;}
-
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
-.btn-ghost:hover{border-color:rgba(0,229,255,0.3);color:var(--text);}
-.yakka-rate{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--warn2);}
-.yakka-rate.good{color:var(--accent2);}
-.yakka-rate.empty{color:var(--text-dim);font-size:10px;}
-.gtin-code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:0.05em;}
-.gtin-copy{background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);font-size:10px;padding:2px 8px;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans JP',sans-serif;}
-.gtin-copy:hover{border-color:rgba(0,229,255,0.4);color:var(--accent);}
-.gtin-none{font-size:10px;color:var(--text-dim);}
-.gtin-multi{display:flex;flex-direction:column;gap:3px;}
-
-@media(max-width:600px){
-  .price-input{width:90px;}
-  .header-info{flex-direction:column;gap:8px;}
-  table{font-size:11px;}
-  .med-name{font-size:12px;}
-}
+@media(max-width:600px){.price-input{width:90px;}.header-info{flex-direction:column;gap:8px;}table{font-size:11px;}.med-name{font-size:12px;}}
 </style>
 </head>
 <body>
 <div class="container" id="app">
-  <div class="loading-wrap">
-    <div class="spinner"></div>
-    <div class="loading-text">読み込み中…</div>
-  </div>
+  <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">読み込み中…</div></div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
 const { createClient } = supabase;
 const sb = createClient(
@@ -141,17 +99,12 @@ const sb = createClient(
 );
 
 const STOCK_TYPES = ['常備', '受発注', '取扱なし'];
-
-// URLパラメータ取得
 const params = new URLSearchParams(location.search);
 const SESSION_ID = params.get('session');
 const WHOLESALER = params.get('wholesaler');
 
-let sessionData = null;
-let items = [];
-let submitted = false;
-let gs1Map = {}; // yj_code -> [{gtin, pkg_type}]
-let yakkaMap = {}; // yj_code -> price（薬価）
+// 入力行配列: { yj_code, medicine_name, gtin, yakka }
+let rows = [];
 
 window.addEventListener('DOMContentLoaded', init);
 
@@ -161,326 +114,253 @@ async function init() {
     return;
   }
 
-  // セッション取得
-  const { data: sess, error: se } = await sb
-    .from('pq_sessions').select('*').eq('id', SESSION_ID).single();
+  const { data: sess, error: se } = await sb.from('pq_sessions').select('*').eq('id', SESSION_ID).single();
+  if (se || !sess) { renderError('セッションが見つかりません', 'URLが無効か削除されています。'); return; }
 
-  if (se || !sess) {
-    renderError('セッションが見つかりません', 'URLが無効か、セッションが削除されています。');
-    return;
-  }
-
-  // 期限チェック
   if (sess.closed_at && new Date(sess.closed_at) < new Date()) {
-    renderError('回答期限が過ぎています', `この見積もりの回答期限は ${fmtDt(sess.closed_at)} でした。\n担当者にご連絡ください。`);
+    renderError('回答期限が過ぎています', `期限: ${fmtDt(sess.closed_at)}\n担当者にご連絡ください。`);
     return;
   }
 
-  sessionData = sess;
-
-  // 既回答チェック
-  const { data: existing } = await sb
-    .from('pq_quotes')
-    .select('id')
-    .eq('session_id', SESSION_ID)
-    .eq('wholesaler', WHOLESALER)
-    .limit(1);
-
+  const { data: existing } = await sb.from('pq_quotes')
+    .select('id').eq('session_id', SESSION_ID).eq('wholesaler', WHOLESALER).limit(1);
   if (existing && existing.length > 0) {
-    renderSuccess('回答済み', `${WHOLESALER} 様はすでにこのセッションに回答済みです。\n修正が必要な場合は担当者にご連絡ください。`);
+    renderSuccess('回答済み', `${WHOLESALER} 様はすでに回答済みです。\n修正が必要な場合は担当者にご連絡ください。`);
     return;
   }
 
-  // 品目取得
   const { data: pqItems, error: ie } = await sb
     .from('pq_items').select('yj_code,medicine_name').eq('session_id', SESSION_ID);
-
   if (ie || !pqItems || !pqItems.length) {
     renderError('品目が見つかりません', 'このセッションに品目が登録されていません。');
     return;
   }
 
-  items = pqItems;
-
-  // GS1マップ取得（包装のみ）
-  const yjCodes = items.map(i => i.yj_code);
+  const yjCodes = pqItems.map(i => i.yj_code);
   const [{ data: gs1Data }, { data: medData }] = await Promise.all([
     sb.from('gs1_map').select('gtin,yj_code,pkg_type').in('yj_code', yjCodes).eq('pkg_type', '包装'),
     sb.from('medicines').select('yj_code,price').in('yj_code', yjCodes)
   ]);
+
+  const yakkaMap = {};
+  (medData || []).forEach(m => { yakkaMap[m.yj_code] = parseFloat(m.price) || 0; });
+
+  const gs1ByYj = {};
   (gs1Data || []).forEach(g => {
-    if (!gs1Map[g.yj_code]) gs1Map[g.yj_code] = [];
-    gs1Map[g.yj_code].push({ gtin: g.gtin, pkg_type: g.pkg_type || '' });
-  });
-  (medData || []).forEach(m => {
-    yakkaMap[m.yj_code] = parseFloat(m.price) || 0;
+    if (!gs1ByYj[g.yj_code]) gs1ByYj[g.yj_code] = [];
+    gs1ByYj[g.yj_code].push(g.gtin);
   });
 
-  renderForm();
-}
+  // 行展開：GTINなし→1行、GTINあり→GTIN数分の行
+  rows = [];
+  pqItems.forEach(item => {
+    const gtins = gs1ByYj[item.yj_code] || [];
+    const yakka = yakkaMap[item.yj_code] || 0;
+    if (gtins.length === 0) {
+      rows.push({ yj_code: item.yj_code, medicine_name: item.medicine_name, gtin: null, yakka });
+    } else {
+      gtins.forEach(gtin => {
+        rows.push({ yj_code: item.yj_code, medicine_name: item.medicine_name, gtin, yakka });
+      });
+    }
+  });
 
-function renderForm() {
-  const deadline = sessionData.closed_at
-    ? `<div class="info-item"><span class="info-label">回答期限</span><span class="info-val">${fmtDt(sessionData.closed_at)}</span></div>`
-    : '';
+  const uniqCount = new Set(rows.map(r => r.yj_code)).size;
+  const deadline = sess.closed_at
+    ? `<div class="info-item"><span class="info-label">回答期限</span><span class="info-val">${fmtDt(sess.closed_at)}</span></div>` : '';
 
   document.getElementById('app').innerHTML = `
     <div class="header">
       <div class="header-top">
         <div class="logo">💊</div>
         <div>
-          <div class="header-title">${sessionData.title || '価格見積もり依頼'}</div>
+          <div class="header-title">${sess.title || '価格見積もり依頼'}</div>
           <div class="header-sub">PRICE QUOTE REQUEST</div>
         </div>
       </div>
       <div class="header-info">
         <div class="info-item"><span class="info-label">回答卸</span><span class="wholesaler-badge">${WHOLESALER}</span></div>
-        <div class="info-item"><span class="info-label">品目数</span><span class="info-val">${items.length} 品目</span></div>
+        <div class="info-item"><span class="info-label">品目数</span><span class="info-val">${uniqCount} 品目 / ${rows.length} 行</span></div>
         ${deadline}
       </div>
     </div>
-
     <div class="notice">
-      ⚠️ 全品目への回答後、画面下部の「回答を送信」ボタンを押してください。送信前にページを閉じると回答が保存されません。
+      ⚠️ 全行の「提示価格」と「在庫区分」を入力後、画面下部の「回答を送信」を押してください。<br>
+      取扱いのない品目は価格欄を空白のまま「取扱なし」を選択してください。<br>
+      同一品目でGTINが複数ある場合は、それぞれに価格を入力してください。
     </div>
-
     <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
-
     <div class="table-wrap">
       <div class="table-header">
         <div class="table-title">見積もり依頼品目</div>
-        <div class="item-count" id="answered-count">0 / ${items.length} 入力済み</div>
+        <div class="item-count" id="answered-count">0 / ${rows.length} 入力済み</div>
       </div>
       <table>
         <thead>
           <tr>
             <th style="min-width:180px;">品名</th>
-            <th class="center" style="min-width:160px;">GS1/GTIN（包装）</th>
+            <th class="center" style="min-width:170px;">GTIN（包装）</th>
             <th class="center">提示価格（円）</th>
             <th class="center">薬価率</th>
             <th class="center">在庫区分</th>
-            <th style="min-width:160px;">備考・条件</th>
+            <th style="min-width:150px;">備考・条件</th>
           </tr>
         </thead>
-        <tbody id="items-tbody">
-          ${items.map((item, i) => `
-            <tr id="row-${i}">
-              <td>
-                <div class="med-name">${item.medicine_name || '—'}</div>
-                <div class="med-yj">${item.yj_code}</div>
-              </td>
-              <td class="center" id="gs1-cell-${i}">
-                <span class="gtin-loading">—</span>
-              </td>
-              <td class="center">
-                <input type="number" class="price-input" id="price-${i}"
-                  placeholder="例: 38500" min="0" step="1"
-                  oninput="updateProgress();calcRate(${i})" />
-              </td>
-              <td class="center" id="rate-cell-${i}">
-                <span class="yakka-rate empty">—</span>
-              </td>
-              <td class="center">
-                <select class="stock-select" id="stock-${i}" onchange="updateStockStyle(${i});updateProgress()">
-                  <option value="">選択…</option>
-                  ${STOCK_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
-                </select>
-              </td>
-              <td>
-                <textarea class="note-input" id="note-${i}" rows="1"
-                  placeholder="数量スライド条件など"></textarea>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
+        <tbody id="rows-tbody"></tbody>
       </table>
     </div>
-
     <div class="submit-area">
-      <div class="submit-note">
-        全品目の「提示価格」と「在庫区分」を入力してから送信してください。<br>
-        取扱いのない品目は価格欄を空白のまま「取扱なし」を選択してください。
+      <div class="submit-note">全行の入力が完了したら送信してください。送信前にCSVで内容を確認できます。</div>
+      <div style="margin-bottom:12px;">
+        <button class="btn btn-ghost btn-full" onclick="exportCSV('before')">📄 入力内容をCSV出力（確認用）</button>
       </div>
-      <div style="display:flex;gap:10px;margin-bottom:12px;">
-        <button class="btn btn-ghost" style="flex:1;justify-content:center;" onclick="exportCSV('before')">
-          📄 入力内容をCSV出力（送信前確認用）
-        </button>
-      </div>
-      <button class="btn btn-primary btn-full" id="submit-btn" onclick="submitQuote()">
-        ✓ 回答を送信する
-      </button>
+      <button class="btn btn-primary btn-full" id="submit-btn" onclick="submitQuote()">✓ 回答を送信する</button>
     </div>
   `;
-  renderGs1Cells();
+
+  buildTableRows();
 }
 
-function renderGs1Cells() {
-  items.forEach((item, i) => {
-    const cell = document.getElementById('gs1-cell-' + i);
-    if (!cell) return;
-    const gtins = gs1Map[item.yj_code];
-    if (!gtins || !gtins.length) {
-      cell.innerHTML = '<span class="gtin-none">—</span>';
-      return;
+function buildTableRows() {
+  const tbody = document.getElementById('rows-tbody');
+  if (!tbody) return;
+  let html = '';
+  let i = 0;
+  while (i < rows.length) {
+    const yj = rows[i].yj_code;
+    let span = 0;
+    while (i + span < rows.length && rows[i + span].yj_code === yj) span++;
+
+    for (let s = 0; s < span; s++) {
+      const row = rows[i + s];
+      const idx = i + s;
+      const gtinHtml = row.gtin
+        ? `<div class="gtin-wrap"><span class="gtin-code">${row.gtin}</span><button class="gtin-copy" onclick="copyGtin('${row.gtin}')">コピー</button></div>`
+        : '<span class="gtin-none">—</span>';
+      const inputCells = `
+        <td class="center">${gtinHtml}</td>
+        <td class="center"><input type="number" class="price-input" id="price-${idx}" placeholder="例: 38500" min="0" step="1" oninput="updateProgress();calcRate(${idx},${row.yakka})"></td>
+        <td class="center" id="rate-${idx}"><span class="yakka-rate empty">—</span></td>
+        <td class="center"><select class="stock-select" id="stock-${idx}" onchange="updateProgress()"><option value="">選択…</option>${STOCK_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}</select></td>
+        <td><textarea class="note-input" id="note-${idx}" rows="1" placeholder="条件など"></textarea></td>`;
+
+      if (s === 0) {
+        html += `<tr>
+          <td rowspan="${span}">
+            <div class="med-name">${row.medicine_name || '—'}</div>
+            <div class="med-yj">${yj}</div>
+            ${row.yakka ? `<div class="med-yakka">薬価 ¥${row.yakka.toLocaleString()}</div>` : ''}
+          </td>${inputCells}</tr>`;
+      } else {
+        html += `<tr>${inputCells}</tr>`;
+      }
     }
-    cell.innerHTML = '<div class="gtin-multi">' + gtins.map(g => `
-      <div class="gtin-wrap">
-        <span class="gtin-code">${g.gtin}</span>
-        <div style="display:flex;gap:4px;align-items:center;">
-          <span style="font-size:9px;color:var(--text-dim);">${g.pkg_type}</span>
-          <button class="gtin-copy" onclick="copyGtin('${g.gtin}')">コピー</button>
-        </div>
-      </div>
-    `).join('') + '</div>';
-  });
+    i += span;
+  }
+  tbody.innerHTML = html;
 }
 
-function calcRate(i) {
-  const yj = items[i]?.yj_code;
-  const yakka = yakkaMap[yj] || 0;
-  const price = parseFloat(document.getElementById('price-' + i)?.value) || 0;
-  const cell = document.getElementById('rate-cell-' + i);
+function calcRate(idx, yakka) {
+  const price = parseFloat(document.getElementById('price-' + idx)?.value) || 0;
+  const cell = document.getElementById('rate-' + idx);
   if (!cell) return;
-  if (!price || !yakka) {
-    cell.innerHTML = '<span class="yakka-rate empty">—</span>';
-    return;
-  }
+  if (!price || !yakka) { cell.innerHTML = '<span class="yakka-rate empty">—</span>'; return; }
   const rate = (price / yakka * 100).toFixed(1);
-  const cls = parseFloat(rate) <= 100 ? 'good' : '';
-  cell.innerHTML = `<span class="yakka-rate ${cls}">${rate}%</span>`;
+  cell.innerHTML = `<span class="yakka-rate ${parseFloat(rate) <= 100 ? 'good' : ''}">${rate}%</span>`;
 }
 
 function copyGtin(gtin) {
   navigator.clipboard.writeText(gtin).then(() => toast('GTINをコピーしました', 'ok'));
 }
 
-function exportCSV(timing) {
-  const rows = [['品名', 'YJコード', 'GTIN（包装）', '薬価', '提示価格（円）', '薬価率(%)', '在庫区分', '備考']];
-  items.forEach((item, i) => {
-    const gtins = gs1Map[item.yj_code] || [];
-    const hosoList = gtins.map(g => g.gtin).join('/');
-    const yakka = yakkaMap[item.yj_code] || '';
-    const price = document.getElementById('price-' + i)?.value || '';
-    const rate = (price && yakka) ? (parseFloat(price) / parseFloat(yakka) * 100).toFixed(1) : '';
-    const stock = document.getElementById('stock-' + i)?.value || '';
-    const note = document.getElementById('note-' + i)?.value || '';
-    rows.push([item.medicine_name || '', item.yj_code, hosoList, yakka, price, rate, stock, note]);
+function updateProgress() {
+  let answered = 0;
+  rows.forEach((_, idx) => {
+    const stock = document.getElementById('stock-' + idx)?.value;
+    const price = document.getElementById('price-' + idx)?.value;
+    if (stock && (price || stock === '取扱なし')) answered++;
   });
-  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const pct = rows.length ? Math.round(answered / rows.length * 100) : 0;
+  const prog = document.getElementById('progress');
+  const cnt = document.getElementById('answered-count');
+  if (prog) prog.style.width = pct + '%';
+  if (cnt) cnt.textContent = `${answered} / ${rows.length} 入力済み`;
+}
+
+function exportCSV(timing) {
+  const csvRows = [['品名', 'YJコード', 'GTIN（包装）', '薬価', '提示価格（円）', '薬価率(%)', '在庫区分', '備考']];
+  rows.forEach((row, idx) => {
+    const price = document.getElementById('price-' + idx)?.value || '';
+    const stock = document.getElementById('stock-' + idx)?.value || '';
+    const note = document.getElementById('note-' + idx)?.value || '';
+    const rate = (price && row.yakka) ? (parseFloat(price) / row.yakka * 100).toFixed(1) : '';
+    csvRows.push([row.medicine_name || '', row.yj_code, row.gtin || '', row.yakka || '', price, rate, stock, note]);
+  });
+  const csv = csvRows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  const label = timing === 'after' ? '回答控え' : '入力確認';
-  a.download = `見積もり_${WHOLESALER}_${label}_${fmtDate(new Date())}.csv`;
+  a.download = `見積もり_${WHOLESALER}_${timing === 'after' ? '回答控え' : '入力確認'}_${fmtDate(new Date())}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-function updateStockStyle(i) {
-  const sel = document.getElementById('stock-' + i);
-  sel.className = 'stock-select';
-}
-
-function updateProgress() {
-  let answered = 0;
-  items.forEach((_, i) => {
-    const stock = document.getElementById('stock-' + i)?.value;
-    const price = document.getElementById('price-' + i)?.value;
-    if (stock && (price || stock === '取扱なし')) answered++;
-  });
-  const pct = items.length ? Math.round(answered / items.length * 100) : 0;
-  document.getElementById('progress').style.width = pct + '%';
-  document.getElementById('answered-count').textContent = `${answered} / ${items.length} 入力済み`;
-}
-
 async function submitQuote() {
-  // バリデーション
   const missing = [];
-  items.forEach((item, i) => {
-    const stock = document.getElementById('stock-' + i)?.value;
-    if (!stock) missing.push(item.medicine_name || item.yj_code);
+  rows.forEach((row, idx) => {
+    if (!document.getElementById('stock-' + idx)?.value) missing.push(row.medicine_name || row.yj_code);
   });
-
-  if (missing.length > 0) {
-    toast(`在庫区分が未選択の品目があります（${missing.length}件）`, 'err');
-    return;
-  }
+  if (missing.length > 0) { toast(`在庫区分が未選択の行があります（${missing.length}行）`, 'err'); return; }
 
   const btn = document.getElementById('submit-btn');
-  btn.disabled = true;
-  btn.textContent = '送信中…';
+  btn.disabled = true; btn.textContent = '送信中…';
 
-  const records = items.map((item, i) => ({
+  const records = rows.map((row, idx) => ({
     session_id: SESSION_ID,
-    yj_code: item.yj_code,
+    yj_code: row.yj_code,
     wholesaler: WHOLESALER,
-    quoted_price: document.getElementById('price-' + i)?.value
-      ? parseFloat(document.getElementById('price-' + i).value) : null,
-    stock_type: document.getElementById('stock-' + i)?.value || null,
-    notes: document.getElementById('note-' + i)?.value || null,
+    gtin: row.gtin || null,
+    quoted_price: document.getElementById('price-' + idx)?.value ? parseFloat(document.getElementById('price-' + idx).value) : null,
+    stock_type: document.getElementById('stock-' + idx)?.value || null,
+    notes: document.getElementById('note-' + idx)?.value || null,
   }));
 
   const { error } = await sb.from('pq_quotes').insert(records);
-
   if (error) {
     toast('送信に失敗しました: ' + error.message, 'err');
-    btn.disabled = false;
-    btn.textContent = '✓ 回答を送信する';
+    btn.disabled = false; btn.textContent = '✓ 回答を送信する';
     return;
   }
-
-  submitted = true;
   renderSuccess('回答を送信しました', `${WHOLESALER} 様の回答を受け付けました。\nご協力ありがとうございました。`, true);
 }
 
-// ===== RENDER STATES =====
 function renderError(title, msg) {
   document.getElementById('app').innerHTML = `
-    <div class="header">
-      <div class="header-top"><div class="logo">💊</div><div class="header-title">価格回答フォーム</div></div>
-    </div>
-    <div class="table-wrap">
-      <div class="error-wrap">
-        <div class="error-icon">⚠️</div>
-        <div class="error-title">${title}</div>
-        <div class="error-msg">${msg}</div>
-      </div>
-    </div>`;
+    <div class="header"><div class="header-top"><div class="logo">💊</div><div class="header-title">価格回答フォーム</div></div></div>
+    <div class="table-wrap"><div class="error-wrap"><div class="error-icon">⚠️</div><div class="error-title">${title}</div><div class="error-msg">${msg.replace(/\n/g,'<br>')}</div></div></div>`;
 }
 
 function renderSuccess(title, msg, showCsv = false) {
-  const csvBtn = showCsv ? `
-    <div style="margin-top:20px;">
-      <button class="btn btn-ghost" onclick="exportCSV('after')" style="margin:0 auto;">
-        📄 回答内容をCSVで保存
-      </button>
-    </div>` : '';
+  const csvBtn = showCsv ? `<div style="margin-top:20px;"><button class="btn btn-ghost" onclick="exportCSV('after')" style="margin:0 auto;">📄 回答内容をCSVで保存（控え）</button></div>` : '';
   document.getElementById('app').innerHTML = `
-    <div class="header">
-      <div class="header-top"><div class="logo">💊</div><div class="header-title">価格回答フォーム</div></div>
-    </div>
-    <div class="table-wrap">
-      <div class="success-wrap">
-        <div class="success-icon">✅</div>
-        <div class="success-title">${title}</div>
-        <div class="success-msg">${msg.replace(/\n/g,'<br>')}</div>
-        ${csvBtn}
-      </div>
-    </div>`;
+    <div class="header"><div class="header-top"><div class="logo">💊</div><div class="header-title">価格回答フォーム</div></div></div>
+    <div class="table-wrap"><div class="success-wrap"><div class="success-icon">✅</div><div class="success-title">${title}</div><div class="success-msg">${msg.replace(/\n/g,'<br>')}</div>${csvBtn}</div></div>`;
 }
 
-// ===== UTILS =====
 function fmtDt(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 
-function toast(msg, type='ok') {
+function fmtDate(d) {
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function toast(msg, type = 'ok') {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast show ' + type;
+  el.textContent = msg; el.className = 'toast show ' + type;
   setTimeout(() => el.classList.remove('show'), 3000);
 }
 </script>
