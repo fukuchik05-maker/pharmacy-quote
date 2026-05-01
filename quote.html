@@ -78,6 +78,9 @@
   .rate-empty { background: #f1f5f9; color: var(--text3); }
 
   .note-input { padding: 7px 10px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; transition: border-color .15s; font-family: inherit; width: 100%; max-width: 480px; }
+  .copy-btn { font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--accent); color: var(--accent); background: #fff; cursor: pointer; white-space: nowrap; transition: all .15s; }
+  .copy-btn:hover { background: var(--accent); color: #fff; }
+  .copy-btn.copied { background: var(--green); border-color: var(--green); color: #fff; }
   .note-input:focus { border-color: var(--accent); }
 
   .field-error { font-size: 11px; color: var(--red); padding: 0 16px 10px 48px; display: none; }
@@ -221,7 +224,8 @@ function buildCard(item, idx, ex) {
       <div class="card-meta">
         <div class="meta-item">包装薬価：<b>¥${item.pkg_price?.toLocaleString() ?? '-'}</b></div>
         <div class="meta-item">包装数：<b>${item.pkg_qty ?? '-'}</b></div>
-        ${item.gs1_pkg ? `<div class="meta-item">GS1：<b>${item.gs1_pkg}</b></div>` : ''}
+        ${item.gs1_pkg ? `<div class="meta-item">GS1：<b>${item.gs1_pkg}</b> <button class="copy-btn" onclick="copyCode(this,'${item.gs1_pkg}')">コピー</button></div>` : ''}
+        ${item.jan_code ? `<div class="meta-item">JAN：<b>${item.jan_code}</b> <button class="copy-btn" onclick="copyCode(this,'${item.jan_code}')">コピー</button></div>` : ''}
       </div>
     </div>
   </div>
@@ -246,6 +250,14 @@ function buildCard(item, idx, ex) {
   </div>
   <div class="field-error" id="err-${item.id}"></div>
 </div>`;
+}
+
+function copyCode(btn, code) {
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = 'コピー済み';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'コピー'; btn.classList.remove('copied'); }, 1500);
+  });
 }
 
 function rateBadge(price, pkg) {
