@@ -645,7 +645,7 @@ async function renderSessionDetail(sessionId) {
           <div class="wholesaler-card">
             <div class="wholesaler-name">${w}</div>
             <div class="url-box">
-              <span id="url-${w}">${url}</span>
+              <a href="${url}" target="_blank" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--accent);font-size:12px;text-decoration:none" id="url-${w}">${url}</a>
               <span class="url-copy" onclick="copyUrl('url-${w}')">コピー</span>
             </div>
           </div>`;
@@ -658,12 +658,13 @@ async function renderSessionDetail(sessionId) {
 }
 
 function copyUrl(elId) {
-  const url = document.getElementById(elId).textContent;
+  const el = document.getElementById(elId);
+  const url = el.href || el.textContent;
   navigator.clipboard.writeText(url).then(() => {
-    const el = document.getElementById(elId).nextElementSibling;
-    const orig = el.textContent;
-    el.textContent = 'コピー済み！';
-    setTimeout(() => el.textContent = orig, 1500);
+    const btn = el.nextElementSibling;
+    const orig = btn.textContent;
+    btn.textContent = 'コピー済み！';
+    setTimeout(() => btn.textContent = orig, 1500);
   });
 }
 
