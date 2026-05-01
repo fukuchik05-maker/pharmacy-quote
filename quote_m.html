@@ -379,10 +379,12 @@ function parseCSV(file) {
     parsedRows = [];
     for (let i = 1; i < lines.length; i++) {
       const cols = parseCSVLine(lines[i]);
-      if (!cols[idx.yj]) continue;
-      const yj = cols[idx.yj].trim();
-      if (!yj || yj === 'ＹＪコード') continue;
+      const yj  = (cols[idx.yj]  || '').trim();
+      const gs1 = (cols[idx.gs1_pkg] || '').trim();
+      // YJコードなし・000000000000・GS1なしは除外（備品・消耗品）
+      if (!yj || yj === 'ＹＪコード' || yj === '000000000000' || !gs1) continue;
       parsedRows.push({
+        gs1_pkg: gs1,
         yj_code: yj,
         name: cols[idx.name] || '',
         spec: cols[idx.spec] || '',
@@ -390,7 +392,6 @@ function parseCSV(file) {
         drug_price: parseFloat(cols[idx.drug_price]) || 0,
         pkg_price: parseFloat(cols[idx.pkg_price]) || 0,
         pkg_qty: parseFloat(cols[idx.pkg_qty]) || 1,
-        gs1_pkg: cols[idx.gs1_pkg] || '',
         gs1_dispensing: cols[idx.gs1_disp] || '',
         jan_code: cols[idx.jan] || '',
         dosage_form: cols[idx.dosage] || '',
@@ -398,6 +399,11 @@ function parseCSV(file) {
         stop_flag: cols[idx.stop] || '',
       });
     }
+
+    // GS1重複除去（同一GS1は最後の行で上書き）
+    const deduped = new Map();
+    for (const row of parsedRows) deduped.set(row.gs1_pkg, row);
+    parsedRows = Array.from(deduped.values());
 
     showPreview();
   };
@@ -460,7 +466,7 @@ async function uploadMaster() {
         method: 'POST',
         headers: {
           apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json', 'Prefer': 'return=minimal,resolution=merge-duplicates', 'on-conflict': 'yj_code'
+          'Content-Type': 'application/json', 'Prefer': 'return=minimal,resolution=merge-duplicates', 'on-conflict': 'gs1_pkg'
         },
         body: JSON.stringify(chunk)
       });
@@ -501,7 +507,7 @@ async function loadMasterList() {
       <div class="stat-card"><div class="stat-label">登録品目数</div><div class="stat-value">${data.length >= 100 ? '100+' : data.length}</div></div>
     `;
     // 全件数を別途取得
-    fetch(`${SUPABASE_URL}/rest/v1/master_medicines?select=yj_code`, {
+    fetch(`${SUPABASE_URL}/rest/v1/master_medicines?select=gs1_pkg`, {
       headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Prefer': 'count=exact', 'Range': '0-0' }
     }).then(r => {
       const ct = r.headers.get('Content-Range');
@@ -685,7 +691,7 @@ async function openItemModal() {
     allMasterItems = [];
     let from = 0;
     while (true) {
-      const chunk = await fetch(`${SUPABASE_URL}/rest/v1/master_medicines?select=yj_code,name,spec,maker,pkg_price&order=name&limit=1000&offset=${from}`, {
+      const chunk = await fetch(`${SUPABASE_URL}/rest/v1/master_medicines?select=gs1_pkg,yj_code,name,spec,maker,pkg_price,pkg_qty,price_factor,jan_code&order=name&limit=1000&offset=${from}`, {
         headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
       }).then(r => r.json());
       allMasterItems = allMasterItems.concat(chunk);
@@ -699,12 +705,12 @@ async function openItemModal() {
 function filterItems() {
   const q = document.getElementById('item-search').value.toLowerCase();
   const filtered = allMasterItems.filter(m =>
-    m.name.toLowerCase().includes(q) || m.yj_code.includes(q)
+    m.name.toLowerCase().includes(q) || m.yj_code.includes(q) || m.gs1_pkg.includes(q)
   );
   const body = document.getElementById('item-select-body');
   body.innerHTML = filtered.slice(0, 200).map(m => `
     <tr>
-      <td><input type="checkbox" class="item-check" value="${m.yj_code}" onchange="updateSelectedCount()"></td>
+      <td><input type="checkbox" class="item-check" value="${m.gs1_pkg}" onchange="updateSelectedCount()"></td>
       <td class="text-sm">${m.yj_code}</td>
       <td>${m.name}</td>
       <td class="text-sm text-muted">${m.spec || ''}</td>
@@ -733,24 +739,25 @@ async function addItemsToSession() {
   if (!checked.length) { alert('品目を選択してください'); return; }
 
   // 既存品目取得
-  const existing = await sb(`pq_items?session_id=eq.${currentSessionId}&select=yj_code`);
-  const existingCodes = new Set(existing.map(e => e.yj_code));
+  const existing = await sb(`pq_items?session_id=eq.${currentSessionId}&select=gs1_pkg`);
+  const existingCodes = new Set(existing.map(e => e.gs1_pkg));
   const toAdd = checked.filter(c => !existingCodes.has(c));
 
   if (!toAdd.length) { alert('選択した品目はすでに追加済みです'); return; }
 
-  const masterMap = Object.fromEntries(allMasterItems.map(m => [m.yj_code, m]));
-  const rows = toAdd.map(yj => {
-    const m = masterMap[yj] || {};
+  const masterMap = Object.fromEntries(allMasterItems.map(m => [m.gs1_pkg, m]));
+  const rows = toAdd.map(gs1 => {
+    const m = masterMap[gs1] || {};
     return {
       session_id: currentSessionId,
-      yj_code: yj,
+      gs1_pkg: gs1,
+      yj_code: m.yj_code || '',
       name: m.name || '',
       spec: m.spec || '',
       pkg_price: m.pkg_price || 0,
       pkg_qty: m.pkg_qty || 1,
       price_factor: m.price_factor || 1,
-      gs1_pkg: m.gs1_pkg || '',
+      jan_code: m.jan_code || '',
     };
   });
 
