@@ -460,7 +460,7 @@ async function uploadMaster() {
         method: 'POST',
         headers: {
           apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
+          'Content-Type': 'application/json', 'Prefer': 'return=minimal,resolution=merge-duplicates', 'on-conflict': 'yj_code'
         },
         body: JSON.stringify(chunk)
       });
