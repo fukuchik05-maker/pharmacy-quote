@@ -104,7 +104,11 @@ tbody td.center{text-align:center;}
 .progress-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden;}
 .progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.3s;}
 
-.gtin-wrap{display:flex;flex-direction:column;gap:4px;align-items:center;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
+.btn-ghost:hover{border-color:rgba(0,229,255,0.3);color:var(--text);}
+.yakka-rate{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--warn2);}
+.yakka-rate.good{color:var(--accent2);}
+.yakka-rate.empty{color:var(--text-dim);font-size:10px;}
 .gtin-code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:0.05em;}
 .gtin-copy{background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);font-size:10px;padding:2px 8px;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans JP',sans-serif;}
 .gtin-copy:hover{border-color:rgba(0,229,255,0.4);color:var(--accent);}
@@ -147,6 +151,7 @@ let sessionData = null;
 let items = [];
 let submitted = false;
 let gs1Map = {}; // yj_code -> [{gtin, pkg_type}]
+let yakkaMap = {}; // yj_code -> price（薬価）
 
 window.addEventListener('DOMContentLoaded', init);
 
@@ -197,15 +202,18 @@ async function init() {
 
   items = pqItems;
 
-  // GS1マップ取得
+  // GS1マップ取得（包装のみ）
   const yjCodes = items.map(i => i.yj_code);
-  const { data: gs1Data } = await sb
-    .from('gs1_map')
-    .select('gtin,yj_code,pkg_type')
-    .in('yj_code', yjCodes);
+  const [{ data: gs1Data }, { data: medData }] = await Promise.all([
+    sb.from('gs1_map').select('gtin,yj_code,pkg_type').in('yj_code', yjCodes).eq('pkg_type', '包装'),
+    sb.from('medicines').select('yj_code,price').in('yj_code', yjCodes)
+  ]);
   (gs1Data || []).forEach(g => {
     if (!gs1Map[g.yj_code]) gs1Map[g.yj_code] = [];
     gs1Map[g.yj_code].push({ gtin: g.gtin, pkg_type: g.pkg_type || '' });
+  });
+  (medData || []).forEach(m => {
+    yakkaMap[m.yj_code] = parseFloat(m.price) || 0;
   });
 
   renderForm();
@@ -247,8 +255,9 @@ function renderForm() {
         <thead>
           <tr>
             <th style="min-width:180px;">品名</th>
-            <th class="center" style="min-width:160px;">GS1/GTIN</th>
+            <th class="center" style="min-width:160px;">GS1/GTIN（包装）</th>
             <th class="center">提示価格（円）</th>
+            <th class="center">薬価率</th>
             <th class="center">在庫区分</th>
             <th style="min-width:160px;">備考・条件</th>
           </tr>
@@ -266,7 +275,10 @@ function renderForm() {
               <td class="center">
                 <input type="number" class="price-input" id="price-${i}"
                   placeholder="例: 38500" min="0" step="1"
-                  oninput="updateProgress()" />
+                  oninput="updateProgress();calcRate(${i})" />
+              </td>
+              <td class="center" id="rate-cell-${i}">
+                <span class="yakka-rate empty">—</span>
               </td>
               <td class="center">
                 <select class="stock-select" id="stock-${i}" onchange="updateStockStyle(${i});updateProgress()">
@@ -323,20 +335,36 @@ function renderGs1Cells() {
   });
 }
 
+function calcRate(i) {
+  const yj = items[i]?.yj_code;
+  const yakka = yakkaMap[yj] || 0;
+  const price = parseFloat(document.getElementById('price-' + i)?.value) || 0;
+  const cell = document.getElementById('rate-cell-' + i);
+  if (!cell) return;
+  if (!price || !yakka) {
+    cell.innerHTML = '<span class="yakka-rate empty">—</span>';
+    return;
+  }
+  const rate = (price / yakka * 100).toFixed(1);
+  const cls = parseFloat(rate) <= 100 ? 'good' : '';
+  cell.innerHTML = `<span class="yakka-rate ${cls}">${rate}%</span>`;
+}
+
 function copyGtin(gtin) {
   navigator.clipboard.writeText(gtin).then(() => toast('GTINをコピーしました', 'ok'));
 }
 
 function exportCSV(timing) {
-  const rows = [['品名', 'YJコード', 'GTIN（バラ）', 'GTIN（包装）', '提示価格（円）', '在庫区分', '備考']];
+  const rows = [['品名', 'YJコード', 'GTIN（包装）', '薬価', '提示価格（円）', '薬価率(%)', '在庫区分', '備考']];
   items.forEach((item, i) => {
     const gtins = gs1Map[item.yj_code] || [];
-    const bara = gtins.find(g => g.pkg_type === 'バラ')?.gtin || '';
-    const hoso = gtins.find(g => g.pkg_type === '包装')?.gtin || '';
+    const hosoList = gtins.map(g => g.gtin).join('/');
+    const yakka = yakkaMap[item.yj_code] || '';
     const price = document.getElementById('price-' + i)?.value || '';
+    const rate = (price && yakka) ? (parseFloat(price) / parseFloat(yakka) * 100).toFixed(1) : '';
     const stock = document.getElementById('stock-' + i)?.value || '';
     const note = document.getElementById('note-' + i)?.value || '';
-    rows.push([item.medicine_name || '', item.yj_code, bara, hoso, price, stock, note]);
+    rows.push([item.medicine_name || '', item.yj_code, hosoList, yakka, price, rate, stock, note]);
   });
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
