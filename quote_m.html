@@ -899,7 +899,7 @@ async function exportAdopted(sessionId) {
     const q = qMap[it.id];
     const price = q?.price || '';
     const rate = price && it.pkg_price ? (price / it.pkg_price * 100).toFixed(1) : '';
-    rows.push([it.yj_code, it.name, it.spec || '', it.gs1_pkg || '', it.jan_code || '', it.pkg_price || '',
+    rows.push([it.yj_code, it.name, it.spec || '', it.gs1_pkg ? '="'+it.gs1_pkg+'"' : '', it.jan_code ? '="'+it.jan_code+'"' : '', it.pkg_price || '',
       q?.wholesaler || '', price, rate, q?.stock_type || '', q?.note || '']);
   }
   const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');

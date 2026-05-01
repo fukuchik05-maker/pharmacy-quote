@@ -386,7 +386,7 @@ function exportCSV(isAfter) {
     const price = st === '取扱なし' ? '' : (document.getElementById('price-'+it.id)?.value || '');
     const rate  = price !== '' && it.pkg_price ? (parseFloat(price)/it.pkg_price*100).toFixed(1) : '';
     const note  = document.getElementById('note-'+it.id)?.value || '';
-    rows.push([it.name, it.spec||'', it.gs1_pkg||'', it.jan_code||'', it.pkg_price||'', it.pkg_qty||'', st, price, rate, note]);
+    rows.push([it.name, it.spec||'', it.gs1_pkg ? '="'+it.gs1_pkg+'"' : '', it.jan_code ? '="'+it.jan_code+'"' : '', it.pkg_price||'', it.pkg_qty||'', st, price, rate, note]);
   }
   const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8' });
