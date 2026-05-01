@@ -894,12 +894,12 @@ async function exportAdopted(sessionId) {
     sb(`pq_quotes?session_id=eq.${sessionId}&adopted=eq.true&select=*`)
   ]);
   const qMap = Object.fromEntries(quotes.map(q => [q.item_id, q]));
-  const rows = [['YJコード','品名','規格','GS1(包装)','包装薬価','採用卸','採用価格','薬価率(%)','在庫区分','備考']];
+  const rows = [['YJコード','品名','規格','GS1(包装)','JANコード','包装薬価','採用卸','採用価格','薬価率(%)','在庫区分','備考']];
   for (const it of items) {
     const q = qMap[it.id];
     const price = q?.price || '';
     const rate = price && it.pkg_price ? (price / it.pkg_price * 100).toFixed(1) : '';
-    rows.push([it.yj_code, it.name, it.spec || '', it.gs1_pkg || '', it.pkg_price || '',
+    rows.push([it.yj_code, it.name, it.spec || '', it.gs1_pkg || '', it.jan_code || '', it.pkg_price || '',
       q?.wholesaler || '', price, rate, q?.stock_type || '', q?.note || '']);
   }
   const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
