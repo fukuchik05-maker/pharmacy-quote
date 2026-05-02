@@ -266,27 +266,33 @@
 
 <!-- ==================== Modal: 品目選択 ==================== -->
 <div class="modal-overlay" id="item-modal">
-  <div class="modal" style="min-width:700px;height:80vh">
-    <div class="modal-title">品目選択</div>
-    <div class="form-row">
-      <div class="form-group" style="flex:1">
-        <label>品名・YJコードで検索</label>
-        <input type="text" id="item-search" placeholder="キーワードを入力..." oninput="filterItems()">
-      </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;width:780px;max-width:95vw;height:82vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:20px 24px 12px;flex-shrink:0">
+      <div class="modal-title">品目選択</div>
+      <input type="text" id="item-search" placeholder="品名・YJコードで検索..." oninput="filterItems()" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;outline:none">
     </div>
-    <div class="table-wrap" style="flex:1;overflow-y:auto;min-height:0">
-      <table>
-        <thead>
-          <tr><th style="width:36px"><input type="checkbox" id="check-all" onchange="toggleAll(this)"></th>
-            <th>YJコード</th><th>品名</th><th>規格・単位</th><th>メーカー</th><th>包装薬価</th></tr>
+    <div style="flex:1;overflow-y:auto;border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead style="position:sticky;top:0;z-index:1">
+          <tr>
+            <th style="width:36px;background:var(--surface2);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)"><input type="checkbox" id="check-all" onchange="toggleAll(this)"></th>
+            <th style="background:var(--surface2);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap">YJコード</th>
+            <th style="background:var(--surface2);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)">品名</th>
+            <th style="background:var(--surface2);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap">規格・単位</th>
+            <th style="background:var(--surface2);padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)">メーカー</th>
+            <th style="background:var(--surface2);padding:10px 12px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap">包装数</th>
+            <th style="background:var(--surface2);padding:10px 12px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap">包装薬価</th>
+          </tr>
         </thead>
         <tbody id="item-select-body"></tbody>
       </table>
     </div>
-    <div class="text-sm text-muted mt-8" id="item-selected-count">0件選択中</div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeItemModal()">キャンセル</button>
-      <button class="btn btn-primary" onclick="addItemsToSession()">追加する</button>
+    <div style="padding:12px 24px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+      <div class="text-sm text-muted" id="item-selected-count">0件選択中</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeItemModal()">キャンセル</button>
+        <button class="btn btn-primary" onclick="addItemsToSession()">追加する</button>
+      </div>
     </div>
   </div>
 </div>
@@ -709,7 +715,7 @@ function filterItems() {
     m.name.toLowerCase().includes(q) || m.yj_code.includes(q) || m.gs1_pkg.includes(q)
   );
   const body = document.getElementById('item-select-body');
-  body.innerHTML = filtered.slice(0, 200).map(m => `
+  body.innerHTML = filtered.slice(0, 1000).map(m => `
     <tr>
       <td><input type="checkbox" class="item-check" value="${m.gs1_pkg}" onchange="updateSelectedCount()"></td>
       <td class="text-sm">${m.yj_code}</td>
