@@ -315,6 +315,19 @@
 </div>
 
 <script>
+(function() {
+  const PASSWORD = 'pq2025';
+  const KEY = 'pq_auth_v1';
+  if (localStorage.getItem(KEY) !== PASSWORD) {
+    const input = prompt('💊 薬剤部管理画面\nパスワードを入力してください');
+    if (input !== PASSWORD) {
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0f1117;color:#f76f6f;font-size:16px;">アクセスが拒否されました</div>';
+      throw new Error('Unauthorized');
+    }
+    localStorage.setItem(KEY, PASSWORD);
+  }
+})();
+
 const SUPABASE_URL = 'https://ipudfidnptdshywvddcf.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwdWRmaWRucHRkc2h5d3ZkZGNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NjA5ODksImV4cCI6MjA5MzIzNjk4OX0.yzN4u9KAWff06x6MQwf16s88Rk7vfmEyP69GQ1HIqbQ';
 const BASE_URL = 'https://pharmacy-quote.vercel.app';
