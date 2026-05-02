@@ -116,7 +116,7 @@
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 1000; align-items: center; justify-content: center; }
   .modal-overlay.open { display: flex; }
   #item-modal { z-index: 2000; }
-  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; min-width: 480px; max-width: 90vw; max-height: 85vh; overflow-y: auto; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; min-width: 480px; max-width: 90vw; max-height: 90vh; overflow-y: hidden; display: flex; flex-direction: column; }
   .modal-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; }
   .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 
@@ -266,7 +266,7 @@
 
 <!-- ==================== Modal: 品目選択 ==================== -->
 <div class="modal-overlay" id="item-modal">
-  <div class="modal" style="min-width:700px">
+  <div class="modal" style="min-width:700px;height:80vh">
     <div class="modal-title">品目選択</div>
     <div class="form-row">
       <div class="form-group" style="flex:1">
@@ -274,7 +274,7 @@
         <input type="text" id="item-search" placeholder="キーワードを入力..." oninput="filterItems()">
       </div>
     </div>
-    <div class="table-wrap" style="max-height:360px;overflow-y:auto">
+    <div class="table-wrap" style="flex:1;overflow-y:auto;min-height:0">
       <table>
         <thead>
           <tr><th style="width:36px"><input type="checkbox" id="check-all" onchange="toggleAll(this)"></th>
@@ -716,6 +716,7 @@ function filterItems() {
       <td>${m.name}</td>
       <td class="text-sm text-muted">${m.spec || ''}</td>
       <td class="text-sm text-muted">${m.maker || ''}</td>
+      <td class="text-sm" style="text-align:right">${m.pkg_qty ?? '-'}</td>
       <td class="text-sm" style="text-align:right">${m.pkg_price?.toFixed(2) || '-'}</td>
     </tr>`).join('');
   updateSelectedCount();
