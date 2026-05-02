@@ -582,16 +582,26 @@ async function loadSessions() {
     }
     container.innerHTML = data.map(s => {
       const expired = s.deadline && new Date(s.deadline) < new Date();
+      const sid = s.id;
+      const stitle = s.title.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      const sdeadline = s.deadline || '';
       return `
       <div class="section" style="margin-bottom:10px;padding:16px">
         <div class="flex justify-between items-center">
           <div>
             <span style="font-weight:700">${s.title}</span>
-            ${s.deadline ? `<span class="badge ${expired ? 'badge-red' : 'badge-blue'}" style="margin-left:8px">${expired ? '期限切れ' : '期限: ' + s.deadline}</span>` : ''}
+            ${s.deadline ? `<span class="badge ${expired ? 'badge-red' : 'badge-blue'}" style="margin-left:8px">${expired ? '期限切れ' : '期限: ' + s.deadline}</span>` : '<span class="badge badge-gray" style="margin-left:8px">期限なし</span>'}
           </div>
-          <div class="flex gap-8">
-            <button class="btn btn-ghost" onclick="openSessionDetail('${s.id}','${s.title.replace(/'/g,'\\\'')}')" style="font-size:12px">品目・URL管理</button>
-            <button class="btn btn-danger" onclick="deleteSession('${s.id}')" style="font-size:12px;padding:6px 10px">削除</button>
+          <div class="flex gap-8" style="align-items:center">
+            <button class="btn btn-ghost" onclick="openSessionDetail('${sid}','${stitle}')" style="font-size:12px">品目・URL管理</button>
+            <div class="dropdown" id="dd-${sid}">
+              <button class="btn btn-ghost" onclick="toggleDropdown('${sid}')" style="font-size:13px;padding:7px 10px">⚙️ ▾</button>
+              <div class="dropdown-menu" id="ddm-${sid}">
+                <button class="dropdown-item" onclick="changeTitle('${sid}','${stitle}');closeDropdown('${sid}')">✏️ タイトル変更</button>
+                <button class="dropdown-item" onclick="changeDeadline('${sid}','${sdeadline}');closeDropdown('${sid}')">📅 期限変更</button>
+                <button class="dropdown-item danger" onclick="deleteSession('${sid}');closeDropdown('${sid}')">🗑️ 削除</button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="text-sm text-muted" style="margin-top:4px">作成: ${s.created_at?.slice(0,10)}</div>
